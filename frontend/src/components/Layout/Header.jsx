@@ -11,7 +11,7 @@ export default function Header(){
         <div className="flex items-center gap-4">
           <Link href="/">
             <a className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md">LC</div>
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center text-white shadow-md">LC</div>
               <div>
                 <div className="text-lg logo-mark">Leidy Cleaner</div>
                 <div className="text-xs muted hidden md:block">Limpeza profissional — Porto Alegre</div>

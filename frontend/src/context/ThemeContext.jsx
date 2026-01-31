@@ -4,7 +4,7 @@ export const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('light');
-  const [accent, setAccent] = useState([59,130,246]); // rgb array
+  const [accent, setAccent] = useState([16,185,129]); // rgb array (green default)
   const [fontScale, setFontScale] = useState(1);
 
   useEffect(() => {
@@ -12,6 +12,7 @@ export function ThemeProvider({ children }) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        // Respect saved theme but prefer green accent unless explicitly set
         setTheme(parsed.theme || 'light');
         if (parsed.accent) setAccent(parsed.accent);
         if (parsed.fontScale) setFontScale(parsed.fontScale);

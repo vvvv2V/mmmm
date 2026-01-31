@@ -14,7 +14,7 @@
   --surface: 255 255 255;
   --text: 17 24 39;
   --muted: 99 102 121;
-  --accent: 59 130 246;
+  --accent: 16 185 129; /* green-500 */
   --danger: 239 68 68;
   --success: 16 185 129;
   --radius: 0.75rem;
@@ -48,7 +48,7 @@ h2{ font-size:1.45rem; }
 .muted{ color: rgb(var(--muted)); }
 
 /* Buttons */
-.btn-primary{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.6rem 1rem; border-radius:.75rem; background:linear-gradient(90deg, rgb(37 99 235), rgb(59 130 246)); color:#fff; border:none; cursor:pointer; box-shadow:0 8px 22px rgba(59,130,246,0.18); transition:transform .12s ease; }
+.btn-primary{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.6rem 1rem; border-radius:.75rem; background:linear-gradient(90deg, rgb(5 150 105), rgb(16 185 129)); color:#fff; border:none; cursor:pointer; box-shadow:0 8px 22px rgba(16,185,129,0.18); transition:transform .12s ease; }
 .btn-primary:hover{ transform:translateY(-2px); }
 .btn-outline{ display:inline-flex; align-items:center; gap:.5rem; padding:.5rem .9rem; border-radius:.6rem; border:1px solid rgba(2,6,23,0.06); background:transparent; color:inherit; cursor:pointer; }
 

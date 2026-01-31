@@ -12,8 +12,8 @@ export default function Footer(){
               Limpeza profissional, rápida e confiável — agende online em minutos.
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <a href="#" className="p-2 rounded bg-white/10 hover:bg-white/20">Instagram</a>
-              <a href="#" className="p-2 rounded bg-white/10 hover:bg-white/20">WhatsApp</a>
+              <a href="#" className="p-2 rounded bg-emerald-600/20 hover:bg-emerald-600/30">Instagram</a>
+              <a href="#" className="p-2 rounded bg-emerald-600/20 hover:bg-emerald-600/30">WhatsApp</a>
             </div>
           </div>
 
