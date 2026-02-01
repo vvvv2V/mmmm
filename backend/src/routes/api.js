@@ -224,4 +224,43 @@ router.get('/reviews/filter', (req, res) => {
   PublicReviewsController.filterReviews(req, res);
 });
 
+// ===== PROFILE & COMPANY =====
+const ProfileController = require('../controllers/ProfileController');
+
+// Profile routes
+router.get('/profile/:userId', (req, res) => {
+  ProfileController.getProfile(req, res);
+});
+
+router.get('/profile-current', authenticateToken, (req, res) => {
+  req.params.userId = req.user.id;
+  ProfileController.getProfile(req, res);
+});
+
+router.put('/profile/update', authenticateToken, (req, res) => {
+  ProfileController.updateProfile(req, res);
+});
+
+// Avatar routes
+router.post('/avatar/upload', authenticateToken, upload.single('avatar'), (req, res) => {
+  ProfileController.uploadAvatar(req, res);
+});
+
+router.delete('/avatar', authenticateToken, (req, res) => {
+  ProfileController.deleteAvatar(req, res);
+});
+
+// Company routes
+router.get('/company/info', (req, res) => {
+  ProfileController.getCompanyInfo(req, res);
+});
+
+router.get('/company/banking', authenticateToken, authorizeRole(['admin']), (req, res) => {
+  ProfileController.getBankingInfo(req, res);
+});
+
+router.put('/company/info', authenticateToken, authorizeRole(['admin']), (req, res) => {
+  ProfileController.updateCompanyInfo(req, res);
+});
+
 module.exports = router;

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Admin - Limpeza Pro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    .logo p {
+      color: #999;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .divider {
+      text-align: center;
+      color: #999;
+      margin: 20px 0;
+      font-size: 12px;
+    }
+
+    .demo-creds {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      border-left: 4px solid #667eea;
+    }
+
+    .demo-creds h3 {
+      color: #333;
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .demo-creds p {
+      color: #666;
+      font-size: 12px;
+      margin: 4px 0;
+      font-family: monospace;
+    }
+
+    .demo-creds .label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 30px 20px;
+      }
+
+      .logo h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo">
+        <h1>🔐 Admin</h1>
+        <p>Painel de Administração</p>
+      </div>
+
+      <div id="alert"></div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="email">📧 Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            placeholder="admin@limpezapro.com"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">🔑 Senha</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="••••••••"
+            required
+          >
+        </div>
+
+        <button type="submit" class="login-btn" id="loginBtn">
+          Entrar no Painel
+        </button>
+
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p style="color: #999; margin-top: 10px; font-size: 12px;">Autenticando...</p>
+        </div>
+      </form>
+
+      <div class="divider">
+        Credenciais de Teste (Development)
+      </div>
+
+      <div class="demo-creds">
+        <h3>👨‍💼 Admin Master</h3>
+        <p><span class="label">Email:</span> admin@limpezapro.com</p>
+        <p><span class="label">Senha:</span> Admin@123456789!</p>
+      </div>
+
+      <div class="demo-creds">
+        <h3>👔 Gerente de Equipe</h3>
+        <p><span class="label">Email:</span> staff@limpezapro.com</p>
+        <p><span class="label">Senha:</span> Staff@123456789!</p>
+      </div>
+
+      <div class="demo-creds">
+        <h3>ℹ️ Informações</h3>
+        <p>🔐 Mude as senhas em produção</p>
+        <p>🗄️ Banco: SQLite (dev) / PostgreSQL (prod)</p>
+        <p>🌐 API: http://localhost:3001</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3001/api';
+
+    async function handleLogin(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const alert = document.getElementById('alert');
+      const loginBtn = document.getElementById('loginBtn');
+      const loading = document.getElementById('loading');
+
+      if (!email || !password) {
+        showAlert('Por favor, preencha todos os campos', 'error');
+        return;
+      }
+
+      try {
+        // Mostrar loading
+        loginBtn.disabled = true;
+        loading.style.display = 'block';
+
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.token) {
+          // Salvar token
+          localStorage.setItem('adminToken', data.token);
+          showAlert('✅ Login realizado com sucesso! Redirecionando...', 'success');
+          
+          // Redirecionar para dashboard após 1 segundo
+          setTimeout(() => {
+            window.location.href = '/admin-dashboard.html';
+          }, 1000);
+        } else {
+          showAlert(data.error || 'Erro ao fazer login', 'error');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        showAlert('Erro de conexão: ' + error.message, 'error');
+      } finally {
+        loginBtn.disabled = false;
+        loading.style.display = 'none';
+      }
+    }
+
+    function showAlert(message, type) {
+      const alert = document.getElementById('alert');
+      alert.innerHTML = `<div class="alert ${type}">${message}</div>`;
+      
+      if (type !== 'success') {
+        setTimeout(() => {
+          alert.innerHTML = '';
+        }, 5000);
+      }
+    }
+
+    // Pre-fill com admin credentials para teste
+    document.getElementById('email').value = 'admin@limpezapro.com';
+    document.getElementById('password').value = 'Admin@123456789!';
+  </script>
+</body>
+</html>

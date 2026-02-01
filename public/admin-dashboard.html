@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Limpeza Pro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      color: #333;
+      font-size: 24px;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 18px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: bold;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .avatar-preview {
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .avatar-preview img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid #667eea;
+      object-fit: cover;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .alert.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .data-table th,
+    .data-table td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .data-table th {
+      background: #f5f5f5;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .data-table tr:hover {
+      background: #f9f9f9;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .status-badge.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-badge.danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .section-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #ddd;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: #333;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-btn:hover {
+      color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏢 Painel Admin - Limpeza Pro</h1>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+
+    <div class="section-tabs">
+      <button class="tab-btn active" onclick="switchTab('perfil')">Meu Perfil</button>
+      <button class="tab-btn" onclick="switchTab('empresa')">Dados da Empresa</button>
+      <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
+      <button class="tab-btn" onclick="switchTab('pagamentos')">Pagamentos</button>
+    </div>
+
+    <!-- TAB: Perfil -->
+    <div id="perfil-tab" class="tab-content active">
+      <div class="dashboard">
+        <div class="card">
+          <h2>👤 Meu Perfil</h2>
+          <div id="alertPerfil"></div>
+
+          <div class="avatar-preview">
+            <img id="avatarImg" src="https://via.placeholder.com/120?text=Avatar" alt="Avatar">
+          </div>
+
+          <form onsubmit="uploadAvatar(event)">
+            <div class="form-group">
+              <label>📷 Escolher Foto (JPEG, PNG, GIF, WebP - Máx 5MB)</label>
+              <input type="file" id="avatarFile" accept="image/*" required>
+            </div>
+            <button type="submit">Carregar Foto</button>
+          </form>
+
+          <hr style="margin: 20px 0;">
+
+          <form onsubmit="updateProfile(event)">
+            <div class="form-group">
+              <label>Nome</label>
+              <input type="text" id="profileName" placeholder="Seu nome">
+            </div>
+
+            <div class="form-group">
+              <label>Telefone</label>
+              <input type="tel" id="profilePhone" placeholder="+55 (11) 98000-0000">
+            </div>
+
+            <div class="form-group">
+              <label>Bio/Descrição</label>
+              <textarea id="profileBio" placeholder="Descreva seu trabalho e experiência..."></textarea>
+            </div>
+
+            <button type="submit">Salvar Perfil</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>🔑 Informações de Login</h2>
+          <p><strong>Email:</strong> <span id="userEmail"></span></p>
+          <p><strong>Papel:</strong> <span id="userRole" class="status-badge success"></span></p>
+          <p><strong>Criado em:</strong> <span id="userCreated"></span></p>
+
+          <hr style="margin: 20px 0;">
+
+          <h3>Mudar Senha</h3>
+          <div id="alertPassword"></div>
+          <form onsubmit="changePassword(event)">
+            <div class="form-group">
+              <label>Senha Atual</label>
+              <input type="password" id="currentPassword" required>
+            </div>
+
+            <div class="form-group">
+              <label>Nova Senha</label>
+              <input type="password" id="newPassword" required>
+            </div>
+
+            <div class="form-group">
+              <label>Confirmar Nova Senha</label>
+              <input type="password" id="confirmPassword" required>
+            </div>
+
+            <button type="submit">Mudar Senha</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Empresa -->
+    <div id="empresa-tab" class="tab-content">
+      <div class="card">
+        <h2>🏢 Dados da Empresa</h2>
+        <div id="alertEmpresa"></div>
+
+        <div class="section-tabs" style="border-bottom: 1px solid #ddd; margin: 0 0 20px 0;">
+          <button class="tab-btn active" onclick="switchCompanyTab('info')">Informações</button>
+          <button class="tab-btn" onclick="switchCompanyTab('banking')">Dados Bancários</button>
+        </div>
+
+        <div id="empresa-info-tab" class="tab-content active">
+          <form onsubmit="updateCompanyInfo(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div class="form-group">
+                <label>Nome da Empresa</label>
+                <input type="text" id="companyName">
+              </div>
+
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="companyEmail">
+              </div>
+
+              <div class="form-group">
+                <label>Telefone</label>
+                <input type="tel" id="companyPhone">
+              </div>
+
+              <div class="form-group">
+                <label>Website</label>
+                <input type="url" id="companyWebsite">
+              </div>
+
+              <div class="form-group">
+                <label>CNPJ/CPF</label>
+                <input type="text" id="companyTaxId" placeholder="12.345.678/0001-90">
+              </div>
+
+              <div class="form-group">
+                <label>Endereço</label>
+                <input type="text" id="companyAddress">
+              </div>
+
+              <div class="form-group">
+                <label>Cidade</label>
+                <input type="text" id="companyCity">
+              </div>
+
+              <div class="form-group">
+                <label>Estado</label>
+                <input type="text" id="companyState" maxlength="2">
+              </div>
+
+              <div class="form-group">
+                <label>CEP</label>
+                <input type="text" id="companyPostalCode">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div class="form-group">
+                <label>Abertura (HH:MM)</label>
+                <input type="time" id="businessOpen">
+              </div>
+
+              <div class="form-group">
+                <label>Fechamento (HH:MM)</label>
+                <input type="time" id="businessClose">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Termos de Pagamento</label>
+              <textarea id="paymentTerms"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Política de Devolução</label>
+              <textarea id="returnPolicy"></textarea>
+            </div>
+
+            <button type="submit">Salvar Informações</button>
+          </form>
+        </div>
+
+        <div id="empresa-banking-tab" class="tab-content">
+          <div id="alertBanking"></div>
+          <form onsubmit="updateCompanyBanking(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div class="form-group">
+                <label>Banco</label>
+                <input type="text" id="bankName">
+              </div>
+
+              <div class="form-group">
+                <label>Titular da Conta</label>
+                <input type="text" id="accountHolder">
+              </div>
+
+              <div class="form-group">
+                <label>Número da Conta</label>
+                <input type="text" id="accountNumber">
+              </div>
+
+              <div class="form-group">
+                <label>Tipo de Conta</label>
+                <select id="accountType">
+                  <option value="checking">Corrente</option>
+                  <option value="savings">Poupança</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Agência/Routing Number</label>
+                <input type="text" id="routingNumber">
+              </div>
+
+              <div class="form-group">
+                <label>Chave PIX</label>
+                <input type="text" id="pixKey" placeholder="Email, CPF, CNPJ ou telefone">
+              </div>
+            </div>
+
+            <button type="submit">Salvar Dados Bancários</button>
+          </form>
+
+          <hr style="margin: 20px 0;">
+          <h3>Dados Salvos</h3>
+          <div id="bankingData" style="background: #f5f5f5; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; font-size: 12px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Usuários -->
+    <div id="usuarios-tab" class="tab-content">
+      <div class="card">
+        <h2>👥 Gerenciar Usuários</h2>
+        <table class="data-table" id="usersTable">
+          <thead>
+            <tr>
+              <th>Avatar</th>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Papel</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="5">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: Pagamentos -->
+    <div id="pagamentos-tab" class="tab-content">
+      <div class="card">
+        <h2>💳 Transações de Pagamento</h2>
+        <table class="data-table" id="paymentsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Valor</th>
+              <th>Método</th>
+              <th>Status</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="paymentsTableBody">
+            <tr><td colspan="5">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3001/api';
+    let token = localStorage.getItem('adminToken');
+
+    // Verificar autenticação
+    if (!token) {
+      window.location.href = '/admin-login.html';
+    }
+
+    // Tab navigation
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab + '-tab').classList.add('active');
+      event.target.classList.add('active');
+
+      if (tab === 'perfil') {
+        loadProfile();
+      } else if (tab === 'empresa') {
+        loadCompanyInfo();
+      } else if (tab === 'usuarios') {
+        loadUsers();
+      } else if (tab === 'pagamentos') {
+        loadPayments();
+      }
+    }
+
+    function switchCompanyTab(tab) {
+      document.querySelectorAll('#empresa-info-tab, #empresa-banking-tab').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.section-tabs .tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('empresa-' + tab + '-tab').classList.add('active');
+      event.target.classList.add('active');
+
+      if (tab === 'banking') {
+        loadBankingInfo();
+      }
+    }
+
+    // Carregar perfil do admin
+    async function loadProfile() {
+      try {
+        const response = await fetch(`${API_URL}/profile-current`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          const user = data.data;
+          document.getElementById('userEmail').textContent = user.email;
+          document.getElementById('userRole').textContent = user.role?.toUpperCase();
+          document.getElementById('profileName').value = user.name || '';
+          document.getElementById('profilePhone').value = user.phone || '';
+          document.getElementById('profileBio').value = user.bio || '';
+          if (user.avatar_url) {
+            document.getElementById('avatarImg').src = user.avatar_url;
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    }
+
+    // Upload avatar
+    async function uploadAvatar(e) {
+      e.preventDefault();
+      const file = document.getElementById('avatarFile').files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      try {
+        const response = await fetch(`${API_URL}/avatar/upload`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+          showAlert('alertPerfil', 'Foto atualizada com sucesso!', 'success');
+          document.getElementById('avatarImg').src = data.data.avatar_url;
+          document.getElementById('avatarFile').value = '';
+        } else {
+          showAlert('alertPerfil', data.error, 'error');
+        }
+      } catch (error) {
+        showAlert('alertPerfil', 'Erro ao carregar foto: ' + error.message, 'error');
+      }
+    }
+
+    // Atualizar perfil
+    async function updateProfile(e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('profileName').value,
+        phone: document.getElementById('profilePhone').value,
+        bio: document.getElementById('profileBio').value
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/profile/update`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+          showAlert('alertPerfil', 'Perfil atualizado com sucesso!', 'success');
+        } else {
+          showAlert('alertPerfil', result.error, 'error');
+        }
+      } catch (error) {
+        showAlert('alertPerfil', 'Erro: ' + error.message, 'error');
+      }
+    }
+
+    // Carregar informações da empresa
+    async function loadCompanyInfo() {
+      try {
+        const response = await fetch(`${API_URL}/company/info`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          const company = data.data;
+          document.getElementById('companyName').value = company.name || '';
+          document.getElementById('companyEmail').value = company.email || '';
+          document.getElementById('companyPhone').value = company.phone || '';
+          document.getElementById('companyWebsite').value = company.website || '';
+          document.getElementById('companyTaxId').value = company.tax_id || '';
+          document.getElementById('companyAddress').value = company.address || '';
+          document.getElementById('companyCity').value = company.city || '';
+          document.getElementById('companyState').value = company.state || '';
+          document.getElementById('companyPostalCode').value = company.postal_code || '';
+          document.getElementById('businessOpen').value = company.business_hours_open || '';
+          document.getElementById('businessClose').value = company.business_hours_close || '';
+          document.getElementById('paymentTerms').value = company.payment_terms || '';
+          document.getElementById('returnPolicy').value = company.return_policy || '';
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados da empresa:', error);
+      }
+    }
+
+    // Atualizar informações da empresa
+    async function updateCompanyInfo(e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('companyName').value,
+        email: document.getElementById('companyEmail').value,
+        phone: document.getElementById('companyPhone').value,
+        website: document.getElementById('companyWebsite').value,
+        tax_id: document.getElementById('companyTaxId').value,
+        address: document.getElementById('companyAddress').value,
+        city: document.getElementById('companyCity').value,
+        state: document.getElementById('companyState').value,
+        postal_code: document.getElementById('companyPostalCode').value,
+        business_hours_open: document.getElementById('businessOpen').value,
+        business_hours_close: document.getElementById('businessClose').value,
+        payment_terms: document.getElementById('paymentTerms').value,
+        return_policy: document.getElementById('returnPolicy').value
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/company/info`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+          showAlert('alertEmpresa', 'Informações atualizadas com sucesso!', 'success');
+        } else {
+          showAlert('alertEmpresa', result.error, 'error');
+        }
+      } catch (error) {
+        showAlert('alertEmpresa', 'Erro: ' + error.message, 'error');
+      }
+    }
+
+    // Carregar dados bancários
+    async function loadBankingInfo() {
+      try {
+        const response = await fetch(`${API_URL}/company/banking`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          const banking = data.data;
+          document.getElementById('bankName').value = banking.bank_name || '';
+          document.getElementById('accountHolder').value = banking.account_holder_name || '';
+          document.getElementById('accountNumber').value = banking.account_number || '';
+          document.getElementById('accountType').value = banking.account_type || 'checking';
+          document.getElementById('routingNumber').value = banking.routing_number || '';
+          document.getElementById('pixKey').value = banking.pix_key || '';
+          
+          // Exibir dados salvos
+          document.getElementById('bankingData').textContent = JSON.stringify(banking, null, 2);
+        }
+      } catch (error) {
+        showAlert('alertBanking', 'Erro ao carregar dados: ' + error.message, 'error');
+      }
+    }
+
+    // Atualizar dados bancários
+    async function updateCompanyBanking(e) {
+      e.preventDefault();
+      const data = {
+        bank_name: document.getElementById('bankName').value,
+        account_holder_name: document.getElementById('accountHolder').value,
+        account_number: document.getElementById('accountNumber').value,
+        account_type: document.getElementById('accountType').value,
+        routing_number: document.getElementById('routingNumber').value,
+        pix_key: document.getElementById('pixKey').value
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/company/info`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+          showAlert('alertBanking', 'Dados bancários atualizados com sucesso!', 'success');
+          loadBankingInfo();
+        } else {
+          showAlert('alertBanking', result.error, 'error');
+        }
+      } catch (error) {
+        showAlert('alertBanking', 'Erro: ' + error.message, 'error');
+      }
+    }
+
+    // Mudar senha
+    async function changePassword(e) {
+      e.preventDefault();
+      const newPass = document.getElementById('newPassword').value;
+      const confirm = document.getElementById('confirmPassword').value;
+
+      if (newPass !== confirm) {
+        showAlert('alertPassword', 'As senhas não correspondem!', 'error');
+        return;
+      }
+
+      // Implementar chamada à API
+      showAlert('alertPassword', 'Funcionalidade em desenvolvimento', 'info');
+    }
+
+    // Carregar usuários
+    async function loadUsers() {
+      try {
+        const response = await fetch(`${API_URL}/users`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          const html = data.data.map(user => `
+            <tr>
+              <td><img src="${user.avatar_url || 'https://via.placeholder.com/40'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;"></td>
+              <td>${user.name}</td>
+              <td>${user.email}</td>
+              <td>${user.role}</td>
+              <td><span class="status-badge ${user.is_active ? 'success' : 'danger'}">${user.is_active ? 'Ativo' : 'Inativo'}</span></td>
+            </tr>
+          `).join('');
+          document.getElementById('usersTableBody').innerHTML = html;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+      }
+    }
+
+    // Carregar pagamentos
+    async function loadPayments() {
+      try {
+        const response = await fetch(`${API_URL}/payments`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          const html = data.data.map(payment => `
+            <tr>
+              <td>#${payment.id}</td>
+              <td>R$ ${parseFloat(payment.amount).toFixed(2)}</td>
+              <td>${payment.payment_method}</td>
+              <td><span class="status-badge ${payment.status === 'completed' ? 'success' : payment.status === 'pending' ? 'warning' : 'danger'}">${payment.status}</span></td>
+              <td>${new Date(payment.created_at).toLocaleDateString('pt-BR')}</td>
+            </tr>
+          `).join('');
+          document.getElementById('paymentsTableBody').innerHTML = html;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar pagamentos:', error);
+      }
+    }
+
+    // Helper: mostrar alertas
+    function showAlert(elementId, message, type) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = `<div class="alert ${type}">${message}</div>`;
+      setTimeout(() => {
+        element.innerHTML = '';
+      }, 5000);
+    }
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('adminToken');
+      window.location.href = '/admin-login.html';
+    }
+
+    // Carregar dados ao iniciar
+    loadProfile();
+  </script>
+</body>
+</html>
