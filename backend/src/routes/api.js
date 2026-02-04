@@ -22,7 +22,23 @@ const storage = multer.diskStorage({
     cb(null, unique + '-' + file.originalname.replace(/\s+/g, '_'));
   }
 });
-const upload = multer({ storage });
+
+// ✅ CORRIGIDO: Validação robusta de upload
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+    files: 8 // Máximo 8 arquivos
+  },
+  fileFilter: (req, file, cb) => {
+    // ✅ CORRIGIDO: Validar MIME type
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP allowed'));
+    }
+    cb(null, true);
+  }
+});
 
 // Controllers
 const BookingController = require('../controllers/BookingController');

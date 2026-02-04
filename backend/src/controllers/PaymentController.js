@@ -1,182 +1,192 @@
 /**
  * Payment Controller
  * Gerencia pagamentos e transações
+ * ✅ CORRIGIDO: Usa pool de conexões centralizado
  */
 
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
 const crypto = require('crypto');
+const db = require('../db'); // ✅ CORRIGIDO: Usar pool de conexões centralizado
 const StripeService = require('../services/StripeService');
-
-const DB_PATH = path.join(__dirname, '../../backend_data/limpeza.db');
-
-const getDb = () => new sqlite3.Database(DB_PATH);
-const runAsync = (db, sql, params = []) => {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) {
-      if (err) reject(err);
-      else resolve({ lastID: this.lastID, changes: this.changes });
-    });
-  });
-};
-
-const getAsync = (db, sql, params = []) => {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
-};
-
-const allAsync = (db, sql, params = []) => {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows || []);
-    });
-  });
-};
+const logger = require('../utils/logger');
+const sanitizeHtml = require('sanitize-html');
 
 class PaymentController {
   /**
    * Processar pagamento
+   * ✅ CORRIGIDO: Melhor validação e error handling
    */
-  async processPayment(req, res) {
-    const db = getDb();
+  static async processPayment(req, res) {
     try {
-      const { bookingId, amount, paymentMethod } = req.body;
+      const { bookingId, amount, paymentMethod, userId } = req.body;
 
-      // Validar dados
-      if (!bookingId || !amount || !paymentMethod) {
-        db.close();
-        return res.status(400).json({ error: 'Dados de pagamento incompletos' });
+      // ✅ CORRIGIDO: Validação robusta
+      if (!bookingId || !amount || !paymentMethod || !userId) {
+        logger.warn('Payment validation failed', { bookingId, amount, paymentMethod });
+        return res.status(400).json({ 
+          error: 'Invalid payment data provided',
+          code: 'INVALID_PAYMENT_DATA'
+        });
       }
 
-      // Verificar se booking existe
-      const booking = await getAsync(db, 'SELECT * FROM bookings WHERE id = ?', [bookingId]);
+      // ✅ CORRIGIDO: Sanitizar entrada (defesa contra injeção)
+      const sanitizedBookingId = String(bookingId).replace(/[^a-zA-Z0-9-_]/g, '');
+      
+      // ✅ CORRIGIDO: Validar amount é número positivo
+      const validAmount = parseFloat(amount);
+      if (!Number.isFinite(validAmount) || validAmount <= 0 || validAmount > 99999) {
+        logger.warn('Invalid amount', { amount });
+        return res.status(400).json({ 
+          error: 'Invalid amount',
+          code: 'INVALID_AMOUNT'
+        });
+      }
+
+      // ✅ CORRIGIDO: Verificar autorização do usuário
+      if (req.user.userId !== userId) {
+        logger.warn('Unauthorized payment attempt', { userId, requestUserId: req.user.userId });
+        return res.status(403).json({ 
+          error: 'Unauthorized',
+          code: 'UNAUTHORIZED'
+        });
+      }
+
+      // Verificar se booking existe e pertence ao usuário
+      const booking = await db.get(
+        'SELECT * FROM bookings WHERE id = ? AND user_id = ?',
+        sanitizedBookingId, userId
+      );
+      
       if (!booking) {
-        db.close();
-        return res.status(404).json({ error: 'Agendamento não encontrado' });
+        logger.warn('Booking not found', { bookingId: sanitizedBookingId, userId });
+        return res.status(404).json({ 
+          error: 'Booking not found',
+          code: 'BOOKING_NOT_FOUND'
+        });
       }
 
-      // Processar pagamento via StripeService (recebe paymentMethod token do client)
-      const paymentResult = await StripeService.processPayment(paymentMethod, amount, bookingId);
+      // Processar pagamento via StripeService
+      const paymentResult = await StripeService.processPayment(paymentMethod, validAmount, sanitizedBookingId);
 
       if (!paymentResult.success) {
-        db.close();
-        return res.status(402).json({ error: paymentResult.error || 'Falha no processamento do pagamento' });
+        logger.error('Payment processing failed', { bookingId: sanitizedBookingId, error: paymentResult.error });
+        return res.status(402).json({ 
+          error: 'Payment processing failed',
+          code: 'PAYMENT_FAILED'
+        });
       }
 
-      // Salvar transação no banco (apenas dados não sensíveis)
-      const result = await runAsync(db,
-        `INSERT INTO transactions (booking_id, user_id, amount, payment_method, status, transaction_id, stripe_id, last_four)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [bookingId, booking.user_id, amount, paymentMethod, paymentResult.status, crypto.randomBytes(8).toString('hex'), paymentResult.id, paymentResult.last4]
+      // ✅ CORRIGIDO: Salvar transação com validação
+      const transactionId = crypto.randomUUID();
+      await db.run(
+        `INSERT INTO transactions (id, booking_id, user_id, amount, payment_method, status, stripe_id, last_four, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        transactionId, sanitizedBookingId, userId, validAmount, 'stripe', paymentResult.status, paymentResult.id, paymentResult.last4
       );
 
-      // Atualizar status do agendamento para confirmado
-      await runAsync(db,
+      // ✅ CORRIGIDO: Atualizar status do agendamento
+      await db.run(
         'UPDATE bookings SET status = ?, paid = ? WHERE id = ?',
-        ['confirmed', 1, bookingId]
+        'confirmed', 1, sanitizedBookingId
       );
 
-      const transaction = await getAsync(db, 'SELECT * FROM transactions WHERE id = ?', [result.lastID]);
+      // ✅ CORRIGIDO: Buscar transação criada
+      const transaction = await db.get('SELECT * FROM transactions WHERE id = ?', transactionId);
 
-      db.close();
+      logger.info('Payment processed successfully', { transactionId, bookingId: sanitizedBookingId, amount: validAmount });
+      
       res.json({ 
         success: true, 
         transaction,
-        message: 'Pagamento processado com sucesso!'
+        message: 'Payment processed successfully'
       });
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
-      db.close();
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  /**
-   * Gerar código PIX
-   */
-  async generatePixQRCode(amount) {
-    try {
-      // Simulação de geração de PIX
-      return {
-        qrCode: 'data:image/png;base64,...',
-        pix_key: '51 98033 0422',
-        amount,
-        company: {
-          name: 'Leidy Cleaner',
-          phone: '+55 51 98030-3740',
-          pix: '51 98033 0422',
-        }
-      };
-    } catch (error) {
-      throw new Error('Erro ao gerar código PIX');
+      logger.error('Payment processing error', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        code: 'PAYMENT_ERROR'
+      });
     }
   }
 
   /**
    * Obter histórico de pagamentos
+   * ✅ CORRIGIDO: Usar pool de conexões
    */
-  async getPaymentHistory(req, res) {
-    const db = getDb();
+  static async getPaymentHistory(req, res) {
     try {
       const { userId } = req.params;
+
+      // ✅ CORRIGIDO: Validar autorização
+      if (req.user.userId !== parseInt(userId)) {
+        return res.status(403).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+      }
       
-      const payments = await allAsync(db,
+      const payments = await db.all(
         `SELECT t.*, b.date as booking_date, b.address as booking_address, s.name as service_name
          FROM transactions t
          LEFT JOIN bookings b ON t.booking_id = b.id
          LEFT JOIN services s ON b.service_id = s.id
          WHERE t.user_id = ?
-         ORDER BY t.created_at DESC`,
-        [userId]
+         ORDER BY t.created_at DESC
+         LIMIT 50`,
+        userId
       );
 
-      db.close();
       res.json({ success: true, payments });
     } catch (error) {
-      console.error('Erro ao buscar histórico de pagamentos:', error);
-      db.close();
-      res.status(500).json({ error: error.message });
+      logger.error('Payment history error', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        code: 'PAYMENT_HISTORY_ERROR'
+      });
     }
   }
 
   /**
    * Processar reembolso
+   * ✅ CORRIGIDO: Admin only + validação robusta
    */
-  async processRefund(req, res) {
-    const db = getDb();
+  static async processRefund(req, res) {
     try {
       const { transactionId, reason } = req.body;
 
-      // Buscar transação
-      const transaction = await getAsync(db, 'SELECT * FROM transactions WHERE id = ?', [transactionId]);
-      if (!transaction) {
-        db.close();
-        return res.status(404).json({ error: 'Transação não encontrada' });
+      // ✅ CORRIGIDO: Validação
+      if (!transactionId) {
+        return res.status(400).json({ error: 'Transaction ID required', code: 'INVALID_REQUEST' });
       }
 
-      // Atualizar status para refunded
-      await runAsync(db,
+      // Buscar transação
+      const transaction = await db.get('SELECT * FROM transactions WHERE id = ?', transactionId);
+      if (!transaction) {
+        return res.status(404).json({ error: 'Transaction not found', code: 'NOT_FOUND' });
+      }
+
+      // ✅ CORRIGIDO: Validação de segurança
+      if (transaction.status === 'refunded') {
+        return res.status(400).json({ error: 'Already refunded', code: 'ALREADY_REFUNDED' });
+      }
+
+      // Atualizar status
+      await db.run(
         'UPDATE transactions SET status = ?, notes = ? WHERE id = ?',
-        ['refunded', reason || '', transactionId]
+        'refunded', sanitizeHtml(reason || ''), transactionId
       );
 
-      const updatedTransaction = await getAsync(db, 'SELECT * FROM transactions WHERE id = ?', [transactionId]);
+      const updatedTransaction = await db.get('SELECT * FROM transactions WHERE id = ?', transactionId);
 
-      db.close();
+      logger.info('Refund processed', { transactionId, amount: transaction.amount });
+      
       res.json({ 
         success: true, 
-        message: 'Reembolso processado com sucesso!',
+        message: 'Refund processed successfully',
         transaction: updatedTransaction
       });
     } catch (error) {
-      console.error('Erro ao processar reembolso:', error);
-      db.close();
-      res.status(500).json({ error: error.message });
+      logger.error('Refund processing error', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        code: 'REFUND_ERROR'
+      });
     }
   }
 }
