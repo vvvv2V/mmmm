@@ -35,7 +35,7 @@ class ChatbotService {
         confidence: 1.0,
       };
     } catch (error) {
-      console.error('Erro no chatbot:', error);
+      logger?.error('Chatbot error:', error);
       return {
         response: 'Ocorreu um erro. Por favor, tente novamente.',
         confidence: 0,

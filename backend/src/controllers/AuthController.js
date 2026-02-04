@@ -1,5 +1,6 @@
 /**
  * AuthController.js - Autenticação e Cadastro com Dados Empresariais
+ * ✅ CORRIGIDO: Validação CNPJ, bcrypt rounds consistentes, melhor logging
  */
 
 const jwt = require('jsonwebtoken');
@@ -7,12 +8,45 @@ const bcrypt = require('bcrypt');
 const db = require('../db');
 const logger = require('../utils/logger');
 
+// ✅ CORRIGIDO: Função para validar CNPJ
+function validateCNPJ(cnpj) {
+  if (!/^\d{14}$/.test(cnpj)) return false;
+  
+  // Eliminar CNPJs inválidos conhecidos
+  if (/^(\d)\1{13}$/.test(cnpj)) return false;
+
+  let sum = 0;
+  let remainder;
+
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(cnpj[i]) * (5 - (i % 4));
+  }
+
+  remainder = sum % 11;
+  if (remainder < 2) remainder = 0;
+  else remainder = 11 - remainder;
+
+  if (remainder !== parseInt(cnpj[12])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 13; i++) {
+    sum += parseInt(cnpj[i]) * (6 - (i % 5));
+  }
+
+  remainder = sum % 11;
+  if (remainder < 2) remainder = 0;
+  else remainder = 11 - remainder;
+
+  return remainder === parseInt(cnpj[13]);
+}
+
 // Use environment variables or defaults for dev
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_key_minimum_32_chars_long_987654';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret_key_minimum_32_chars_long_987';
+const BCRYPT_ROUNDS = 12; // ✅ CORRIGIDO: Rounds consistentes (12 é recomendado)
 
 if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET)) {
-  logger.error('❌ JWT secrets não definidos em produção');
+  logger.error('❌ JWT secrets not defined in production');
   process.exit(1);
 }
 
@@ -69,10 +103,23 @@ class AuthController {
       }
 
       // Validar CPF/CNPJ
-      if (cpf_cnpj && cpf_cnpj.replace(/\D/g, '').length < 11) {
-        return res.status(400).json({
-          error: 'CPF/CNPJ inválido'
-        });
+      if (cpf_cnpj) {
+        const cleanCpfCnpj = cpf_cnpj.replace(/\D/g, '');
+        if (cleanCpfCnpj.length < 11) {
+          return res.status(400).json({
+            error: 'Invalid CPF/CNPJ format',
+            code: 'INVALID_DOCUMENT'
+          });
+        }
+        // ✅ CORRIGIDO: Validação CNPJ real (12 dígitos)
+        if (cleanCpfCnpj.length === 14) {
+          if (!validateCNPJ(cleanCpfCnpj)) {
+            return res.status(400).json({
+              error: 'Invalid CNPJ number',
+              code: 'INVALID_CNPJ'
+            });
+          }
+        }
       }
 
       // Verificar se email já existe
@@ -88,7 +135,8 @@ class AuthController {
       }
 
       // Hash da senha
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // ✅ CORRIGIDO: Usar BCRYPT_ROUNDS consistentes (12 rounds é recomendado) 
+      const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
       // Validações adicionais para staff
       if (role === 'staff') {

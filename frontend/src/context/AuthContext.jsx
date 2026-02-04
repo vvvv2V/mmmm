@@ -13,32 +13,66 @@ export function AuthProvider({ children }) {
     const savedToken = localStorage.getItem('auth_token');
     if (savedToken) {
       setToken(savedToken);
-      // Aqui você poderia validar o token com o backend
-      // TODO: Chamar /api/auth/verify
+      // ✅ CORRIGIDO: Validar token com o backend
+      verifyToken(savedToken);
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
+
+  // ✅ CORRIGIDO: Função para verificar token
+  const verifyToken = async (authToken) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/auth/verify`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        setToken(authToken);
+      } else {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        setToken(null);
+      }
+    } catch (err) {
+      console.error('Token verification failed:', err);
+      localStorage.removeItem('auth_token');
+      setToken(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = useCallback(async (email, password) => {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Implementar chamada real ao /api/auth/login
-      const mockUser = {
-        id: 1,
-        email,
-        name: email.split('@')[0],
-        role: 'customer'
-      };
+      // ✅ CORRIGIDO: Implementar chamada real ao /api/auth/login
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      const data = await response.json();
       
-      const mockToken = 'token_' + Date.now();
+      setUser(data.user);
+      setToken(data.accessToken);
+      localStorage.setItem('auth_token', data.accessToken);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
       
-      setUser(mockUser);
-      setToken(mockToken);
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-      
-      return mockUser;
+      return data.user;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -50,7 +84,15 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     setIsLoading(true);
     try {
-      // TODO: Chamar /api/auth/logout
+      // ✅ CORRIGIDO: Chamar /api/auth/logout
+      if (token) {
+        await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
       setUser(null);
       setToken(null);
       localStorage.removeItem('auth_token');
@@ -60,21 +102,41 @@ export function AuthProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [token]);
 
   const register = useCallback(async (userData) => {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Implementar chamada real ao /api/auth/register
-      return await login(userData.email, userData.password);
+      // ✅ CORRIGIDO: Implementar chamada real ao /api/auth/register
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Registration failed');
+      }
+
+      const data = await response.json();
+      
+      setUser(data.user);
+      setToken(data.accessToken);
+      localStorage.setItem('auth_token', data.accessToken);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
+      
+      return data.user;
     } catch (err) {
       setError(err.message);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [login]);
+  }, []);
 
   const isAuthenticated = !!token;
 

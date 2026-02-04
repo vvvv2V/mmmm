@@ -19,10 +19,10 @@ class MapsOptimizer {
       //   optimizeWaypoints: true,
       // });
       
-      console.log('Rota otimizada');
+      logger?.info('Rota otimizada');
       return addresses;
     } catch (error) {
-      console.error('Erro ao otimizar rota:', error);
+      logger?.error('Erro ao otimizar rota:', error);
       return addresses;
     }
   }
@@ -35,7 +35,7 @@ class MapsOptimizer {
       // Implementar com Google Maps API
       return 0;
     } catch (error) {
-      console.error('Erro ao calcular distância:', error);
+      logger?.error('Erro ao calcular distância:', error);
       return 0;
     }
   }
@@ -48,7 +48,7 @@ class MapsOptimizer {
       // Implementar com Google Maps API
       return 30; // minutos
     } catch (error) {
-      console.error('Erro ao estimar tempo:', error);
+      logger?.error('Erro ao estimar tempo:', error);
       return 30;
     }
   }

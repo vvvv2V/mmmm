@@ -23,7 +23,7 @@ class GoogleCalendarSync {
       console.log(`Agendamento sincronizado com Google Calendar: ${booking.id}`);
       return true;
     } catch (error) {
-      console.error('Erro ao sincronizar com Google Calendar:', error);
+      logger?.error('Erro ao sincronizar com Google Calendar:', error);
       return false;
     }
   }
@@ -43,7 +43,7 @@ class GoogleCalendarSync {
       
       return [];
     } catch (error) {
-      console.error('Erro ao buscar disponibilidade:', error);
+      logger?.error('Erro ao buscar disponibilidade:', error);
       return [];
     }
   }

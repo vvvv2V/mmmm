@@ -23,16 +23,16 @@ class WhatsAppService {
           to: `whatsapp:${phoneNumber}`
         });
         
-        console.log(`✅ Mensagem WhatsApp enviada para ${phoneNumber}`);
+        logger?.info(`WhatsApp message sent to ${phoneNumber}`);
         return { success: true, messageId: result.sid };
       } else {
         // Modo mock se não tiver credenciais
-        console.warn('⚠️ Twilio não configurado. Configure TWILIO_SID, TWILIO_TOKEN, TWILIO_WHATSAPP_NUMBER');
-        console.log(`[MOCK] WhatsApp para ${phoneNumber}: ${message}`);
+        logger?.warn('Twilio not configured');
+        logger?.debug(`[MOCK] WhatsApp sent to ${phoneNumber}`);
         return { success: true, mock: true };
       }
     } catch (error) {
-      console.error('❌ Erro ao enviar WhatsApp:', error.message);
+      logger?.error('WhatsApp send error:', error);
       throw new Error('Falha ao enviar mensagem WhatsApp');
     }
   }
