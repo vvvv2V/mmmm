@@ -1,5 +1,5 @@
 import '../styles/globals.css'
-import React from 'react'
+import React, { useEffect } from 'react'
 import '../sentry.client'
 import { ThemeProvider } from '../context/ThemeContext'
 import { AuthProvider } from '../context/AuthContext'
@@ -12,27 +12,56 @@ import WhatsAppButton from '../components/UI/WhatsAppButton'
 import LiveChat from '../components/UI/LiveChat'
 import PushNotifications from '../components/UI/PushNotifications'
 import PWABanner from '../components/UI/PWABanner'
+import Script from 'next/script'
+import { useRouter } from 'next/router'
+import * as gtag from '../../frontend/lib/gtag'
 
 export default function MyApp({ Component, pageProps }) {
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleRouteChange = (url) => {
+      try {
+        gtag.pageview(url)
+      } catch (e) {}
+    }
+
+    router.events.on('routeChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange)
+    }
+  }, [router.events])
+
   return (
-    <ErrorBoundary>
-      <ToastProvider>
-        <AuthProvider>
-          <ThemeProvider>
-            <LoyaltyProvider>
-              <NotificationSystem />
-              <div className="min-h-[100vh] mobile-only pb-20">
-                <Component {...pageProps} />
-              </div>
-              <MobileBottomNav />
-              <WhatsAppButton />
-              <LiveChat />
-              <PushNotifications />
-              <PWABanner />
-            </LoyaltyProvider>
-          </ThemeProvider>
-        </AuthProvider>
-      </ToastProvider>
-    </ErrorBoundary>
+    <>
+      {/* Google Analytics - gtag.js */}
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+      />
+      <Script id="gtag-init" strategy="afterInteractive">
+        {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');`}
+      </Script>
+
+      <ErrorBoundary>
+        <ToastProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <LoyaltyProvider>
+                <NotificationSystem />
+                <div className="min-h-[100vh] mobile-only pb-20">
+                  <Component {...pageProps} />
+                </div>
+                <MobileBottomNav />
+                <WhatsAppButton />
+                <LiveChat />
+                <PushNotifications />
+                <PWABanner />
+              </LoyaltyProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ErrorBoundary>
+    </>
   )
 }
