@@ -10,6 +10,8 @@ import FAQ from '../components/UI/FAQ'
 import BlogSection from '../components/UI/BlogSection'
 import FeaturedServices from '../components/UI/FeaturedServices'
 import BenefitsSection from '../components/UI/BenefitsSection'
+import TeamSection from '../components/UI/TeamSection'
+import VideoTestimonials from '../components/UI/VideoTestimonials'
 import { motion } from 'framer-motion'
 
 export default function Home() {
@@ -761,12 +763,18 @@ export default function Home() {
             </div>
           </section>
 
+          {/* Video Testimonials Section */}
+          <VideoTestimonials />
+
           {/* FAQ Section */}
           <section className="py-20 sm:py-32">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <FAQ />
             </div>
           </section>
+
+          {/* Team Section */}
+          <TeamSection />
 
           {/* Blog Section */}
           <section className="py-20 sm:py-32 bg-gray-50 dark:bg-slate-900">
