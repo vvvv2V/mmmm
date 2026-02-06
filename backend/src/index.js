@@ -17,6 +17,7 @@ const adminRoutes = require('./routes/admin');
 const Scheduler = require('./utils/scheduler');
 const ChatService = require('./services/ChatService');
 const logger = require('./utils/logger');
+const requestLoggingMiddleware = require('./middleware/requestLogging');
 const path = require('path');
 const { initCsrf } = require('./middleware/csrf');
 const { setupEmailQueueDashboard } = require('./utils/queueDashboard');
@@ -106,6 +107,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ✅ NOVO: Middleware de logging (estruturado e automático)
+app.use(requestLoggingMiddleware);
 
 // Servir arquivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, '..', '..', 'public')));

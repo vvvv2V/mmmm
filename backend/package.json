@@ -18,7 +18,11 @@
     "queue:worker": "node src/workers/emailQueueWorker.js",
     "queue:worker:watch": "nodemon src/workers/emailQueueWorker.js",
     "queue:clean": "node -e \"require('./src/services/EmailQueueService.js').cleanFailedJobs().then(() => process.exit(0))\"",
-    "queue:stats": "node -e \"require('./src/services/EmailQueueService.js').getQueueStats().then(s => console.log(JSON.stringify(s, null, 2))).then(() => process.exit(0))\""
+    "queue:stats": "node -e \"require('./src/services/EmailQueueService.js').getQueueStats().then(s => console.log(JSON.stringify(s, null, 2))).then(() => process.exit(0))\"",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug",
+    "e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@sentry/node": "^7.84.0",
@@ -52,10 +56,12 @@
     "stripe": "^11.8.0",
     "twilio": "^5.12.0",
     "web-push": "^3.5.0",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",
+    "@playwright/test": "^1.58.1",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.0.0",
     "eslint": "^9.39.2",

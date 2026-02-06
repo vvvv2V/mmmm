@@ -1,25 +1,157 @@
 const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, printf, colorize, errors } = format;
+const { combine, timestamp, printf, colorize, errors, json } = format;
+const path = require('path');
+const fs = require('fs');
 
-const myFormat = printf(({ level, message, timestamp, stack }) => {
-  return `${timestamp} [${level}] ${stack || message}`;
+// Criar diretório de logs se não existir
+const logsDir = path.join(__dirname, '../../logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
+
+// ✅ NOVO: Formato customizado com cores
+const myFormat = printf(({ level, message, timestamp, stack, requestId, userId, context }) => {
+  let output = `${timestamp} [${level}]`;
+  if (requestId) output += ` [REQ:${requestId}]`;
+  if (userId) output += ` [USER:${userId}]`;
+  if (context) output += ` [${context}]`;
+  output += ` ${stack || message}`;
+  return output;
 });
+
+// ✅ NOVO: Formato JSON para estruturado
+const jsonFormat = format.combine(
+  format.timestamp(),
+  format.errors({ stack: true }),
+  format.json()
+);
+
+// ✅ NOVO: Tentar usar daily-rotate-file se disponível
+let rotateFile;
+try {
+  rotateFile = require('winston-daily-rotate-file');
+} catch (e) {
+  rotateFile = null;
+  console.warn('⚠️ winston-daily-rotate-file não instalado, usando arquivo simples');
+}
+
+// ✅ NOVO: Configurar transports
+const logTransports = [
+  // Console com cores para desenvolvimento
+  new transports.Console({
+    format: combine(
+      errors({ stack: true }),
+      timestamp(),
+      colorize({ all: true }),
+      myFormat
+    ),
+    handleExceptions: true,
+    level: process.env.LOG_LEVEL || 'info'
+  })
+];
+
+// ✅ NOVO: Adicionar arquivo combinado (JSON estruturado)
+if (rotateFile) {
+  logTransports.push(
+    new rotateFile({
+      filename: path.join(logsDir, 'application-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '20m',
+      maxDays: '30d',
+      format: jsonFormat,
+      level: 'info'
+    })
+  );
+} else {
+  // Fallback: arquivo simples
+  logTransports.push(
+    new transports.File({
+      filename: path.join(logsDir, 'application.log'),
+      format: jsonFormat,
+      level: 'info',
+      maxsize: 5242880, // 5MB
+      maxFiles: 30
+    })
+  );
+}
+
+// ✅ NOVO: Arquivo separado apenas para erros
+if (rotateFile) {
+  logTransports.push(
+    new rotateFile({
+      filename: path.join(logsDir, 'error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '20m',
+      maxDays: '30d',
+      format: jsonFormat,
+      level: 'error'
+    })
+  );
+} else {
+  // Fallback: arquivo simples
+  logTransports.push(
+    new transports.File({
+      filename: path.join(logsDir, 'error.log'),
+      format: jsonFormat,
+      level: 'error',
+      maxsize: 5242880, // 5MB
+      maxFiles: 30
+    })
+  );
+}
 
 const logger = createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: combine(
     errors({ stack: true }),
-    timestamp(),
-    colorize({ all: true }),
-    myFormat
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' })
   ),
-  transports: [
-    new transports.Console({ handleExceptions: true }),
-  ],
-  exitOnError: false,
+  defaultMeta: { service: 'avante-api' },
+  transports: logTransports,
+  exitOnError: false
 });
 
-// Helper para mascarar PII em logs
+// ✅ NOVO: Método para log com contexto
+logger.logWithContext = (level, message, context = {}) => {
+  logger.log({
+    level,
+    message,
+    ...context,
+    timestamp: new Date().toISOString()
+  });
+};
+
+// ✅ NOVO: Método para log de performance
+logger.logPerformance = (operation, duration, details = {}) => {
+  const level = duration > 1000 ? 'warn' : duration > 100 ? 'info' : 'debug';
+  logger.log({
+    level,
+    message: `Performance: ${operation} took ${duration}ms`,
+    operation,
+    duration_ms: duration,
+    ...details,
+    timestamp: new Date().toISOString()
+  });
+};
+
+// ✅ NOVO: Método para log de request
+logger.logRequest = (method, path, statusCode, duration, userId = null) => {
+  const level = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
+  logger.log({
+    level,
+    message: `${method} ${path} ${statusCode}`,
+    http: {
+      method,
+      path,
+      statusCode,
+      duration_ms: duration
+    },
+    userId,
+    timestamp: new Date().toISOString()
+  });
+};
+
+// ✅ MANTIDO: Helper para mascarar PII em logs
 logger.maskPII = (value) => {
   if (!value) return value;
   const v = String(value);
@@ -39,6 +171,15 @@ logger.maskPII = (value) => {
   }
   // Default: mask middle
   return v.length > 6 ? v.slice(0, 3) + '***' + v.slice(-3) : v;
+};
+
+// ✅ NOVO: Stats de logs
+logger.getStats = () => {
+  return {
+    logsDir,
+    files: fs.existsSync(logsDir) ? fs.readdirSync(logsDir).length : 0,
+    timestamp: new Date().toISOString()
+  };
 };
 
 module.exports = logger;

@@ -50,6 +50,7 @@ const PhotosController = require('../controllers/PhotosController');
 const PublicReviewsController = require('../controllers/PublicReviewsController');
 const AuthController = require('../controllers/AuthController');
 const NotificationsController = require('../controllers/NotificationsController');
+const HealthCheckController = require('../controllers/HealthCheckController');
 
 // Middleware
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
@@ -57,6 +58,27 @@ const { validateBookingData, validatePaymentData, validateReviewData } = require
 const { limiters, logRateLimitViolation } = require('../middleware/rateLimited');
 const { validateSchema } = require('../utils/joiSchemas');
 const { bookingSchemas, reviewSchemas, paymentSchemas, userSchemas } = require('../utils/joiSchemas');
+
+// ===== HEALTH CHECKS (Públicas, sem autenticação) =====
+router.get('/health', (req, res) => {
+  HealthCheckController.getDetailedHealth(req, res);
+});
+
+router.get('/health/live', (req, res) => {
+  HealthCheckController.getLiveness(req, res);
+});
+
+router.get('/health/ready', (req, res) => {
+  HealthCheckController.getReadiness(req, res);
+});
+
+router.get('/health/db', (req, res) => {
+  HealthCheckController.getDatabaseReady(req, res);
+});
+
+router.get('/health/queue', (req, res) => {
+  HealthCheckController.getQueueStatus(req, res);
+});
 
 // ===== BOOKINGS =====
 // ===== AUTH =====
