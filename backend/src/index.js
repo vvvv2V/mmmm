@@ -19,6 +19,7 @@ const ChatService = require('./services/ChatService');
 const logger = require('./utils/logger');
 const path = require('path');
 const { initCsrf } = require('./middleware/csrf');
+const { setupEmailQueueDashboard } = require('./utils/queueDashboard');
 
 const app = express();
 // ✅ CORRIGIDO: trust proxy configurado apenas se em produção com proxy real
@@ -156,6 +157,15 @@ app.use((err, req, res, next) => {
   logger.error('Erro no middleware:', err);
   res.status(500).json({ error: 'Erro interno do servidor' });
 });
+
+// ===== QUEUE DASHBOARD (Bull Board) =====
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    setupEmailQueueDashboard(app, '/queues');
+  } catch (error) {
+    logger.warn('Dashboard de filas não disponível', { error: error.message });
+  }
+}
 
 // ===== INICIALIZAÇÃO =====
 const PORT = process.env.PORT || 3001;

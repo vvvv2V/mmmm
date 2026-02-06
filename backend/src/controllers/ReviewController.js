@@ -1,12 +1,13 @@
 /**
  * Review Controller
  * Gerencia avaliações e depoimentos
- * ✅ MELHORADO: Validações robustas, cache, sanitização
+ * ✅ MELHORADO: Validações robustas, cache, sanitização, email queue
  */
 
-const db = require('../db'); // ✅ Usar pool centralizado
+const { getDb } = require('../db/sqlite'); // ✅ Usar pool centralizado
 const ValidationService = require('../services/ValidationService');
 const CacheService = require('../services/CacheService');
+const EmailQueueService = require('../services/EmailQueueService');
 const logger = require('../utils/logger');
 
 class ReviewController {
@@ -14,27 +15,48 @@ class ReviewController {
    * Criar nova avaliação
    */
   async createReview(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { bookingId, userId, rating, comment } = req.body;
 
       // Validar dados
       if (!bookingId || !rating || rating < 1 || rating > 5) {
-        db.close();
+        await db.close();
         return res.status(400).json({ error: 'Dados de avaliação inválidos' });
       }
 
       // Salvar avaliação no banco
-      const result = await runAsync(db,
-        `INSERT INTO reviews (booking_id, user_id, rating, comment, is_approved)
-         VALUES (?, ?, ?, ?, 1)`,
-        [bookingId, userId, rating, comment || '']
-      );
+      const result = await db.run(`INSERT INTO reviews (booking_id, user_id, rating, comment, is_approved)
+         VALUES (?, ?, ?, ?, 1)`, bookingId, userId, rating, comment || '');
 
       const reviewId = result.lastID;
-      const review = await getAsync(db, 'SELECT * FROM reviews WHERE id = ?', [reviewId]);
+      const review = await db.get('SELECT * FROM reviews WHERE id = ?', reviewId);
 
-      db.close();
+      // ✅ Enfileirar email de agradecimento (assíncrono)
+      try {
+        const user = await db.get('SELECT email, name, full_name FROM users WHERE id = ?', userId);
+        if (user && user.email) {
+          await EmailQueueService.enqueueReviewNotification(
+            user.email,
+            user.name || user.full_name,
+            {
+              bookingId,
+              rating,
+              reviewId,
+              comment: comment || 'Sem comentários'
+            }
+          );
+          logger.info('Thank you email queued', { reviewId, email: user.email });
+        }
+      } catch (emailError) {
+        logger.error('Error queuing thank you email', { 
+          reviewId,
+          error: emailError.message 
+        });
+        // Continuar mesmo se falhar
+      }
+
+      await db.close();
       res.status(201).json({ 
         success: true, 
         message: 'Avaliação registrada com sucesso!', 
@@ -42,7 +64,7 @@ class ReviewController {
       });
     } catch (error) {
       console.error('Erro ao criar avaliação:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -51,7 +73,7 @@ class ReviewController {
    * Obter avaliações públicas
    */
   async getPublicReviews(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { page = 1, limit = 10, sort = 'recent' } = req.query;
       const offset = (page - 1) * limit;
@@ -63,22 +85,18 @@ class ReviewController {
         orderClause = 'ORDER BY r.rating ASC, r.created_at DESC';
       }
 
-      const reviews = await allAsync(db,
-        `SELECT r.*, u.name as user_name, b.service_id 
+      const reviews = await db.all(`SELECT r.*, u.name as user_name, b.service_id 
          FROM reviews r
          LEFT JOIN users u ON r.user_id = u.id
          LEFT JOIN bookings b ON r.booking_id = b.id
          WHERE r.is_approved = 1
          ${orderClause}
-         LIMIT ? OFFSET ?`,
-        [limit, offset]
+         LIMIT ? OFFSET ?`, limit, offset);
+
+      const countResult = await db.get('SELECT COUNT(*) as total FROM reviews WHERE is_approved = 1'
       );
 
-      const countResult = await getAsync(db,
-        'SELECT COUNT(*) as total FROM reviews WHERE is_approved = 1'
-      );
-
-      db.close();
+      await db.close();
       res.json({ 
         success: true, 
         reviews,
@@ -90,7 +108,7 @@ class ReviewController {
       });
     } catch (error) {
       console.error('Erro ao buscar avaliações:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -99,15 +117,15 @@ class ReviewController {
    * Obter estatísticas de classificação
    */
   async getRatingStats(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       // Média geral
-      const avgResult = await getAsync(db,
+      const avgResult = await db.get(
         'SELECT AVG(rating) as average_rating, COUNT(*) as total_reviews FROM reviews WHERE is_approved = 1'
       );
 
       // Distribuição por rating
-      const breakdown = await allAsync(db,
+      const breakdown = await db.all(
         `SELECT rating, COUNT(*) as count FROM reviews WHERE is_approved = 1
          GROUP BY rating ORDER BY rating DESC`
       );
@@ -125,11 +143,11 @@ class ReviewController {
         stats.breakdown[item.rating] = item.count;
       });
 
-      db.close();
+      await db.close();
       res.json({ success: true, stats });
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -138,23 +156,20 @@ class ReviewController {
    * Responder a avaliação (admin)
    */
   async respondToReview(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { reviewId } = req.params;
       const { response } = req.body;
 
-      await runAsync(db,
-        'UPDATE reviews SET admin_response = ? WHERE id = ?',
-        [response, reviewId]
-      );
+      await db.run('UPDATE reviews SET admin_response = ? WHERE id = ?', response, reviewId);
 
-      const review = await getAsync(db, 'SELECT * FROM reviews WHERE id = ?', [reviewId]);
+      const review = await db.get( 'SELECT * FROM reviews WHERE id = ?', reviewId);
 
-      db.close();
+      await db.close();
       res.json({ success: true, message: 'Resposta enviada', review });
     } catch (error) {
       console.error('Erro ao responder avaliação:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }

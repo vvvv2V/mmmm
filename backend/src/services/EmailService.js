@@ -372,6 +372,170 @@ class EmailService {
       throw error;
     }
   }
+
+  /**
+   * Enviar confirmação de pagamento
+   */
+  async sendPaymentConfirmation(clientEmail, clientName, paymentData) {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'noreply@leidycleaner.com',
+        to: clientEmail,
+        subject: '💳 Pagamento Confirmado - Leidy Cleaner',
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+                .success { background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 20px 0; color: #155724; }
+                .detail { margin: 10px 0; padding: 10px; background: #f0f0f0; border-left: 4px solid #667eea; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>✅ Pagamento Confirmado</h1>
+                </div>
+                <div class="success">
+                  <strong>✓ Seu pagamento foi processado com sucesso!</strong>
+                </div>
+                <div style="background: white; padding: 20px;">
+                  <p>Olá ${clientName},</p>
+                  
+                  <h3>Detalhes do Pagamento:</h3>
+                  <div class="detail">
+                    <strong>ID da Transação:</strong> ${paymentData.transactionId || 'N/A'}
+                  </div>
+                  <div class="detail">
+                    <strong>Método:</strong> ${paymentData.method || 'Cartão de Crédito'}
+                  </div>
+                  <div class="detail">
+                    <strong>Valor:</strong> R$ ${parseFloat(paymentData.amount).toFixed(2)}
+                  </div>
+                  <div class="detail">
+                    <strong>Data:</strong> ${new Date(paymentData.date).toLocaleDateString('pt-BR')}
+                  </div>
+                  
+                  <p style="margin-top: 20px; color: #666;">
+                    Você receberá em breve uma confirmação do seu agendamento.
+                  </p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log(`✅ Confirmação de pagamento enviada para ${clientEmail}`);
+      return result;
+    } catch (error) {
+      console.error('❌ Erro ao enviar confirmação de pagamento:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Enviar notificação de reembolso
+   */
+  async sendRefundNotification(clientEmail, clientName, refundData) {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'noreply@leidycleaner.com',
+        to: clientEmail,
+        subject: '💰 Reembolso Processado - Leidy Cleaner',
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+                .refund-box { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>💰 Reembolso Processado</h1>
+                </div>
+                <div class="refund-box">
+                  <p><strong>Seu reembolso foi processado com sucesso!</strong></p>
+                  <p style="font-size: 20px; margin: 10px 0;">R$ ${parseFloat(refundData.amount).toFixed(2)}</p>
+                  <p>O valor será creditado em sua conta em até 5-7 dias úteis.</p>
+                </div>
+                <div style="background: white; padding: 20px;">
+                  <p>Olá ${clientName},</p>
+                  
+                  <p><strong>Motivo do Reembolso:</strong> ${refundData.reason || 'Não especificado'}</p>
+                  <p><strong>Data do Reembolso:</strong> ${new Date(refundData.date).toLocaleDateString('pt-BR')}</p>
+                  <p><strong>ID da Transação:</strong> ${refundData.refundId || 'N/A'}</p>
+                  
+                  <p style="margin-top: 20px;">
+                    Se tiver dúvidas ou se o reembolso não aparecer em sua conta, <a href="mailto:suporte@leidycleaner.com">entre em contato conosco</a>.
+                  </p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log(`✅ Notificação de reembolso enviada para ${clientEmail}`);
+      return result;
+    } catch (error) {
+      console.error('❌ Erro ao enviar notificação de reembolso:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Enviar solicitação de avaliação (alias para sendRatingRequest)
+   */
+  async sendReviewRequest(clientEmail, clientName, reviewData) {
+    return this.sendRatingRequest(clientEmail, clientName, reviewData);
+  }
+
+  /**
+   * Enviar email genérico
+   */
+  async sendGenericEmail(to, subject, htmlContent) {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'noreply@leidycleaner.com',
+        to,
+        subject,
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                ${htmlContent}
+              </div>
+            </body>
+          </html>
+        `
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log(`✅ Email genérico enviado para ${to}`);
+      return result;
+    } catch (error) {
+      console.error(`❌ Erro ao enviar email para ${to}:`, error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new EmailService();

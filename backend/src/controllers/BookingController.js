@@ -1,13 +1,14 @@
 /**
  * Booking Controller
  * Gerencia todas as operações relacionadas a agendamentos
- * ✅ MELHORADO: Validações robustas, cache, rate limiting
+ * ✅ MELHORADO: Validações robustas, cache, rate limiting, email queue
  */
 
-const db = require('../db'); // ✅ Usar pool centralizado
+const { getDb } = require('../db/sqlite'); // ✅ Usar pool centralizado
 const { calculateBookingPrice, calculateLoyaltyBonus } = require('../utils/priceCalculator');
 const ValidationService = require('../services/ValidationService');
 const CacheService = require('../services/CacheService');
+const EmailQueueService = require('../services/EmailQueueService');
 const logger = require('../utils/logger');
 
 class BookingController {
@@ -46,6 +47,8 @@ class BookingController {
       // ✅ Sanitizar notes
       const sanitizedNotes = notes ? ValidationService.sanitizeInput(notes) : '';
 
+      const db = await getDb();
+
       // ✅ Buscar dados com cache
       const service = await this.getServiceCached(serviceId);
       if (!service) {
@@ -66,12 +69,9 @@ class BookingController {
       }
 
       // ✅ Verificar conflo de horário
-      const conflict = await db.get(
-        `SELECT id FROM bookings 
+      const conflict = await db.get(`SELECT id FROM bookings 
          WHERE date = ? AND time = ? AND status != 'cancelled'
-         LIMIT 1`,
-        [validated.date, validated.time]
-      );
+         LIMIT 1`, validated.date, validated.time);
 
       if (conflict) {
         logger.warn('Booking time conflict', { date: validated.date, time: validated.time });
@@ -107,33 +107,26 @@ class BookingController {
       // ✅ Aplicar bônus de fidelidade
       if (user.loyalty_bonus && user.loyalty_bonus > 0 && !user.bonus_redeemed) {
         booking.final_price = Math.max(0, booking.final_price - user.loyalty_bonus);
-        await db.run(
-          'UPDATE users SET bonus_redeemed = 1, loyalty_bonus = 0 WHERE id = ?',
-          [validated.userId]
-        );
+        await db.run('UPDATE users SET bonus_redeemed = 1, loyalty_bonus = 0 WHERE id = ?', validated.userId);
       }
 
       // ✅ Inserir agendamento
-      const result = await db.run(
-        `INSERT INTO bookings (
+      const result = await db.run(`INSERT INTO bookings (
           user_id, service_id, date, time, duration_hours,
           address, phone, base_price, extra_quarter_hours,
           staff_fee, post_work_adjustment, final_price,
           is_post_work, has_extra_quarter, has_staff, status, notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [validated.userId, validated.serviceId, validated.date, validated.time, 
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, validated.userId, validated.serviceId, validated.date, validated.time, 
          validated.durationHours, validated.address, validated.phone,
          booking.base_price, booking.extra_quarter_hours,
          booking.staff_fee, booking.post_work_adjustment, booking.final_price,
-         booking.is_post_work, booking.has_extra_quarter, hasStaff ? 1 : 0, 'pending', sanitizedNotes]
-      );
+         booking.is_post_work, booking.has_extra_quarter, hasStaff ? 1 : 0, 'pending', sanitizedNotes);
 
       // ✅ Invalidar cache
       CacheService.invalidatePattern(`user:${validated.userId}:*`);
 
       // ✅ Buscar agendamento criado
-      const newBooking = await db.get(
-        'SELECT * FROM bookings WHERE id = ?',
+      const newBooking = await db.get('SELECT * FROM bookings WHERE id = ?',
         result.lastID
       );
 
@@ -143,6 +136,31 @@ class BookingController {
         serviceId: validated.serviceId,
         price: booking.final_price
       });
+
+      // ✅ Enfileirar email de confirmação (assíncrono - não bloqueia resposta)
+      if (user.email) {
+        try {
+          await EmailQueueService.enqueueBookingConfirmation(
+            user.email,
+            user.name || user.full_name,
+            {
+              id: result.lastID,
+              date: newBooking.date,
+              time: newBooking.time,
+              address: newBooking.address,
+              durationHours: newBooking.duration_hours,
+              finalPrice: newBooking.final_price
+            }
+          );
+          logger.info('Confirmation email queued', { bookingId: result.lastID, email: user.email });
+        } catch (emailError) {
+          logger.error('Error queuing confirmation email', { 
+            bookingId: result.lastID,
+            error: emailError.message 
+          });
+          // Continuar mesmo se falhar - não bloqueia a requisição
+        }
+      }
 
       res.status(201).json({
         success: true,
@@ -176,10 +194,10 @@ class BookingController {
   async getServiceCached(serviceId) {
     const cacheKey = CacheService.KEYS.SERVICE(serviceId);
     return CacheService.remember(cacheKey, CacheService.TTL.LONG, async () => {
-      return await db.get(
-        'SELECT * FROMServices WHERE id = ?',
-        [serviceId]
-      );
+      const pdb = await getDb();
+      const row = await pdb.get('SELECT * FROM services WHERE id = ?', serviceId);
+      await pdb.close();
+      return row;
     });
   }
 
@@ -189,58 +207,31 @@ class BookingController {
   async getUserCached(userId) {
     const cacheKey = CacheService.KEYS.USER(userId);
     return CacheService.remember(cacheKey, CacheService.TTL.MEDIUM, async () => {
-      return await db.get(
-        'SELECT * FROM users WHERE id = ?',
-        [userId]
-      );
+      const pdb = await getDb();
+      const row = await pdb.get('SELECT * FROM users WHERE id = ?', userId);
+      await pdb.close();
+      return row;
     });
   }
 
-  /**
-   * Obter agendamentos do usuário
-   */
+
   async getUserBookings(req, res) {
-    try {
-      const { userId } = req.params;
-      const newBooking = await getAsync(db, 'SELECT * FROM bookings WHERE id = ?', [bookingId]);
-
-      db.close();
-      res.status(201).json({
-        success: true,
-        booking: newBooking,
-        priceBreakdown: priceCalc,
-        message: 'Agendamento criado com sucesso!'
-      });
-
-    } catch (error) {
-      console.error('Erro ao criar agendamento:', error);
-      db.close();
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  /**
-   * Obter agendamentos do usuário
-   */
-  async getUserBookings(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { userId } = req.params;
 
-      const bookings = await allAsync(db,
+      const bookings = await db.all(
         `SELECT b.*, s.name as service_name, s.price as service_price
          FROM bookings b
          LEFT JOIN services s ON b.service_id = s.id
          WHERE b.user_id = ?
-         ORDER BY b.date DESC`,
-        [userId]
-      );
+         ORDER BY b.date DESC`, userId);
 
-      db.close();
+      await db.close();
       res.json({ success: true, bookings });
     } catch (error) {
       console.error('Erro ao buscar agendamentos:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -249,28 +240,27 @@ class BookingController {
    * Avaliar agendamento concluído e processar bônus de fidelidade
    */
   async rateBooking(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { bookingId } = req.params;
       const { rating, review } = req.body;
 
       if (!rating || rating < 1 || rating > 5) {
-        db.close();
+        await db.close();
         return res.status(400).json({
           error: 'Avaliação deve ser entre 1 e 5'
         });
       }
 
       // Atualizar agendamento com avaliação
-      await runAsync(db,
-        `UPDATE bookings SET rating = ?, review = ? WHERE id = ?`,
-        [rating, review || '', bookingId]
+      await db.run(`UPDATE bookings SET rating = ?, review = ? WHERE id = ?`,
+        rating, review || '', bookingId
       );
 
       // Se foi 5 estrelas, atualizar streak de fidelidade
       if (rating === 5) {
-        const booking = await getAsync(db, 'SELECT user_id FROM bookings WHERE id = ?', [bookingId]);
-        const user = await getAsync(db, 'SELECT * FROM users WHERE id = ?', [booking.user_id]);
+        const booking = await db.get('SELECT user_id FROM bookings WHERE id = ?', bookingId);
+        const user = await db.get('SELECT * FROM users WHERE id = ?', booking.user_id);
 
         // Incrementar streak
         let newStreak = (user.five_star_streak || 0) + 1;
@@ -284,16 +274,16 @@ class BookingController {
         }
 
         // Atualizar usuário
-        await runAsync(db,
+        await db.run(
           `UPDATE users SET
             five_star_streak = ?,
             total_five_stars = total_five_stars + 1,
             loyalty_bonus = ?
            WHERE id = ?`,
-          [newStreak, loyaltyBonus, booking.user_id]
+          newStreak, loyaltyBonus, booking.user_id
         );
 
-        db.close();
+        await db.close();
         return res.json({
           success: true,
           message: bonusReached 
@@ -308,7 +298,7 @@ class BookingController {
         });
       }
 
-      db.close();
+      await db.close();
       res.json({
         success: true,
         message: 'Avaliação registrada com sucesso!'
@@ -316,7 +306,7 @@ class BookingController {
 
     } catch (error) {
       console.error('Erro ao avaliar agendamento:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -325,14 +315,14 @@ class BookingController {
    * Atualizar status do agendamento
    */
   async updateBooking(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { bookingId } = req.params;
       const { status, date, notes } = req.body;
 
       const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
       if (status && !validStatuses.includes(status)) {
-        db.close();
+        await db.close();
         return res.status(400).json({
           error: 'Status inválido'
         });
@@ -359,11 +349,11 @@ class BookingController {
       query += 'updated_at = CURRENT_TIMESTAMP WHERE id = ?';
       params.push(bookingId);
 
-      await runAsync(db, query, params);
+      await db.run( query, params);
 
-      const booking = await getAsync(db, 'SELECT * FROM bookings WHERE id = ?', [bookingId]);
+      const booking = await db.get( 'SELECT * FROM bookings WHERE id = ?', bookingId);
 
-      db.close();
+      await db.close();
       res.json({
         success: true,
         booking,
@@ -372,7 +362,7 @@ class BookingController {
 
     } catch (error) {
       console.error('Erro ao atualizar agendamento:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -381,20 +371,17 @@ class BookingController {
    * Cancelar agendamento
    */
   async cancelBooking(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { bookingId } = req.params;
       const { reason } = req.body;
 
       const notes = reason ? ` | Motivo do cancelamento: ${reason}` : '';
-      await runAsync(db,
-        `UPDATE bookings SET status = 'cancelled', notes = notes || ? WHERE id = ?`,
-        [notes, bookingId]
-      );
+      await db.run(`UPDATE bookings SET status = 'cancelled', notes = notes || ? WHERE id = ?`, notes, bookingId);
 
-      const booking = await getAsync(db, 'SELECT * FROM bookings WHERE id = ?', [bookingId]);
+      const booking = await db.get( 'SELECT * FROM bookings WHERE id = ?', bookingId);
 
-      db.close();
+      await db.close();
       res.json({
         success: true,
         booking,
@@ -403,7 +390,7 @@ class BookingController {
 
     } catch (error) {
       console.error('Erro ao cancelar agendamento:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -412,23 +399,20 @@ class BookingController {
    * Obter bônus de fidelidade do usuário
    */
   async getLoyaltyStatus(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { userId } = req.params;
 
-      const user = await getAsync(db,
-        'SELECT five_star_streak, total_five_stars, loyalty_bonus, bonus_redeemed FROM users WHERE id = ?',
-        [userId]
-      );
+      const user = await db.get('SELECT five_star_streak, total_five_stars, loyalty_bonus, bonus_redeemed FROM users WHERE id = ?', userId);
 
       if (!user) {
-        db.close();
+        await db.close();
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
 
       const loyaltyCalc = calculateLoyaltyBonus(user);
 
-      db.close();
+      await db.close();
       res.json({
         success: true,
         loyalty: {
@@ -442,7 +426,7 @@ class BookingController {
 
     } catch (error) {
       console.error('Erro ao buscar status de fidelidade:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
@@ -451,29 +435,26 @@ class BookingController {
    * Criar agendamento recorrente
    */
   async createRecurringBooking(req, res) {
-    const db = getDb();
+    const db = await getDb();
     try {
       const { userId } = req.user;
       const { serviceId, frequency, dayOfWeek, time, address, phone } = req.body;
 
       const validFrequencies = ['weekly', 'biweekly', 'monthly'];
       if (!validFrequencies.includes(frequency)) {
-        db.close();
+        await db.close();
         return res.status(400).json({
           error: 'Frequência inválida'
         });
       }
 
-      const result = await runAsync(db,
-        `INSERT INTO recurring_bookings (user_id, service_id, frequency, day_of_week, time, address, phone)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userId, serviceId, frequency, dayOfWeek, time, address, phone]
-      );
+      const result = await db.run(`INSERT INTO recurring_bookings (user_id, service_id, frequency, day_of_week, time, address, phone)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`, userId, serviceId, frequency, dayOfWeek, time, address, phone);
 
       const recurringId = result.lastID;
-      const recurring = await getAsync(db, 'SELECT * FROM recurring_bookings WHERE id = ?', [recurringId]);
+      const recurring = await db.get('SELECT * FROM recurring_bookings WHERE id = ?', recurringId);
 
-      db.close();
+      await db.close();
       res.status(201).json({
         success: true,
         recurring,
@@ -482,7 +463,7 @@ class BookingController {
 
     } catch (error) {
       console.error('Erro ao criar agendamento recorrente:', error);
-      db.close();
+      await db.close();
       res.status(500).json({ error: error.message });
     }
   }
