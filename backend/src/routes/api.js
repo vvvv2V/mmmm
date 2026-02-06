@@ -50,6 +50,7 @@ const PhotosController = require('../controllers/PhotosController');
 const PublicReviewsController = require('../controllers/PublicReviewsController');
 const ChatController = require('../controllers/ChatController');
 const DatabaseOptimizationController = require('../controllers/DatabaseOptimizationController');
+const CDNAssetController = require('../controllers/CDNAssetController');
 const AuthController = require('../controllers/AuthController');
 const NotificationsController = require('../controllers/NotificationsController');
 const HealthCheckController = require('../controllers/HealthCheckController');
@@ -406,6 +407,47 @@ router.get('/db/stats', authenticateToken, authorizeRole(['admin']), (req, res) 
 
 router.post('/db/reset-stats', authenticateToken, authorizeRole(['admin']), (req, res) => {
   DatabaseOptimizationController.resetStatistics(req, res);
+});
+
+// ===== CDN & ASSET OPTIMIZATION =====
+router.post('/cdn/optimize-image', authenticateToken, (req, res) => {
+  CDNAssetController.optimizeImage(req, res);
+});
+
+router.get('/cdn/responsive-image', authenticateToken, (req, res) => {
+  CDNAssetController.getResponsiveImage(req, res);
+});
+
+router.get('/cdn/placeholder', authenticateToken, (req, res) => {
+  CDNAssetController.getPlaceholder(req, res);
+});
+
+router.get('/cdn/bandwidth-savings', authenticateToken, authorizeRole(['admin']), (req, res) => {
+  CDNAssetController.getBandwidthSavings(req, res);
+});
+
+router.get('/cdn/manifest', authenticateToken, authorizeRole(['admin']), (req, res) => {
+  CDNAssetController.getAssetManifest(req, res);
+});
+
+router.get('/cdn/cache-headers', authenticateToken, (req, res) => {
+  CDNAssetController.getCacheHeaders(req, res);
+});
+
+router.post('/cdn/preload-resources', authenticateToken, (req, res) => {
+  CDNAssetController.generatePreloadTags(req, res);
+});
+
+router.post('/cdn/image-sitemap', authenticateToken, authorizeRole(['admin']), (req, res) => {
+  CDNAssetController.getImageSitemap(req, res);
+});
+
+router.get('/cdn/image-performance/:imageId', authenticateToken, (req, res) => {
+  CDNAssetController.measureImagePerformance(req, res);
+});
+
+router.get('/cdn/optimization-report', authenticateToken, authorizeRole(['admin']), (req, res) => {
+  CDNAssetController.getOptimizationReport(req, res);
 });
 
 // ===== ADMIN DASHBOARD =====

@@ -31,7 +31,9 @@
     "migration:chat": "node src/database/migrations/002_create_chat_messages_table.js",
     "db:report": "node -e \"const DatabaseOptimizationService = require('./backend/src/services/DatabaseOptimizationService.js'); console.log(JSON.stringify(DatabaseOptimizationService.getQueryReport(), null, 2))\"",
     "db:slow-queries": "node -e \"const DatabaseOptimizationService = require('./backend/src/services/DatabaseOptimizationService.js'); DatabaseOptimizationService.detectSlowQueries(null, 100).then(q => console.log(JSON.stringify(q, null, 2))).then(() => process.exit(0))\"",
-    "db:indices": "node -e \"const DatabaseOptimizationService = require('./backend/src/services/DatabaseOptimizationService.js'); console.log(JSON.stringify(DatabaseOptimizationService.suggestIndices(), null, 2))\""
+    "db:indices": "node -e \"const DatabaseOptimizationService = require('./backend/src/services/DatabaseOptimizationService.js'); console.log(JSON.stringify(DatabaseOptimizationService.suggestIndices(), null, 2))\"",
+    "cdn:report": "node -e \"const CDNAssetOptimizerService = require('./backend/src/services/CDNAssetOptimizerService.js'); console.log(JSON.stringify(CDNAssetOptimizerService.generateOptimizationReport(), null, 2))\"",
+    "cdn:savings": "node -e \"const CDNAssetOptimizerService = require('./backend/src/services/CDNAssetOptimizerService.js'); console.log(JSON.stringify(CDNAssetOptimizerService.calculateBandwidthSavings(), null, 2))\""
   },
   "dependencies": {
     "@sentry/node": "^7.84.0",
