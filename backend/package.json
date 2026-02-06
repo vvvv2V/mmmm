@@ -22,7 +22,10 @@
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:debug": "playwright test --debug",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "2fa:setup": "node -e \"const TwoFactorService = require('./backend/src/services/TwoFactorService.js'); console.log(JSON.stringify(TwoFactorService.generateTOTPSecret('test@example.com'), null, 2))\"",
+    "invoices:cleanup": "node -e \"const InvoiceService = require('./backend/src/services/InvoiceService.js'); InvoiceService.deleteOldInvoices(30).then(() => process.exit(0))\"",
+    "invoices:stats": "node -e \"const InvoiceService = require('./backend/src/services/InvoiceService.js'); console.log(JSON.stringify(InvoiceService.getStats(), null, 2))\""
   },
   "dependencies": {
     "@sentry/node": "^7.84.0",
@@ -47,14 +50,16 @@
     "node-cron": "^3.0.2",
     "nodemailer": "^7.0.13",
     "openai": "^6.17.0",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.8.0",
+    "qrcode": "^1.5.4",
     "redis": "^4.6.5",
     "sanitize-html": "^2.17.0",
     "socket.io": "^4.8.3",
     "speakeasy": "^2.0.0",
     "sqlite3": "^5.0.2",
     "stripe": "^11.8.0",
-    "twilio": "^5.12.0",
+    "twilio": "^5.12.1",
     "web-push": "^3.5.0",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0"
