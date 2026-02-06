@@ -3,29 +3,66 @@
    ============================================ */
 
 :root {
-  /* ✨ TEMA CLARO (DEFAULT) */
+  /* ✨ TEMA CLARO (DEFAULT) - Baseado na imagem brand */
   color-scheme: light;
   
-  /* Cores primárias */
-  --color-primary: #22c55e;
-  --color-primary-light: #86efac;
-  --color-primary-dark: #15803d;
+  /* Cores primárias - Roxo e Ciano da imagem */
+  --color-primary: #7c3aed;
+  --color-primary-light: #a78bfa;
+  --color-primary-dark: #6d28d9;
+  
+  /* Cores secundárias - Complementares */
+  --color-secondary: #06b6d4;
+  --color-secondary-light: #22d3ee;
+  --color-secondary-dark: #0891b2;
   
   /* Fundo e texto */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f9fafb;
-  --color-bg-tertiary: #f3f4f6;
-  --color-text: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-tertiary: #9ca3af;
+  --color-bg: #f8f6fc;
+  --color-bg-secondary: #f3f0fa;
+  --color-bg-tertiary: #ede9fe;
+  --color-text: #1e1b4b;
+  --color-text-secondary: #52525b;
+  --color-text-tertiary: #a1a1aa;
   
   /* Bordas */
-  --color-border: #e5e7eb;
-  --color-border-light: #f3f4f6;
+  --color-border: #ddd6fe;
+  --color-border-light: #ede9fe;
   
   /* Status */
   --color-success: #10b981;
   --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #06b6d4;
+  
+  /* Shadows & Effects */
+  --shadow-xs: 0 1px 2px 0 rgba(124, 58, 237, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(124, 58, 237, 0.1);
+  --shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.15);
+  --shadow-md: 0 10px 15px -3px rgba(124, 58, 237, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(124, 58, 237, 0.1);
+  --shadow-xl: 0 25px 50px -12px rgba(124, 58, 237, 0.15);
+  
+  /* Borders */
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  
+  /* Transitions */
+  --transition-base: all 0.3s ease;
+  --transition-colors: color, background-color, border-color 0.3s ease;
+  --transition-transform: transform 0.3s ease;
+  
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --font-mono: 'Fira Code', 'Monaco', 'Courier New', monospace;
+  
+  /* Safe area */
+  --safe-area-inset-top: env(safe-area-inset-top, 0);
+  --safe-area-inset-right: env(safe-area-inset-right, 0);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+  --safe-area-inset-left: env(safe-area-inset-left, 0);
+}
   --color-error: #ef4444;
   --color-info: #3b82f6;
   
@@ -82,8 +119,18 @@ html.dark {
   --color-text-secondary: #cbd5e1;
   --color-text-tertiary: #94a3b8;
   
-  --color-border: #475569;
-  --color-border-light: #334155;
+  --color-border: #64748b;
+  --color-border-light: #475569;
+  
+  /* Cores primárias mantém o roxo do brand */
+  --color-primary: #a78bfa;
+  --color-primary-light: #ddd6fe;
+  --color-primary-dark: #7c3aed;
+  
+  /* Cores secundárias mantém o ciano */
+  --color-secondary: #22d3ee;
+  --color-secondary-light: #67e8f9;
+  --color-secondary-dark: #06b6d4;
 }
 
 /* ============================================

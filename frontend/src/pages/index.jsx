@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Header from '../components/Layout/Header'
 import Footer from '../components/Layout/Footer'
-import FAQ from '../components/UI/FAQ'
 import BlogSection from '../components/UI/BlogSection'
 import CTANewsletter from '../components/UI/CTANewsletter'
 import FloatingChat from '../components/UI/FloatingChat'
@@ -10,8 +9,14 @@ import HeroSectionNew from '../components/UI/HeroSectionNew'
 import HowItWorksSection from '../components/UI/HowItWorksSection'
 import ServicesGridSection from '../components/UI/ServicesGridSection'
 import PricingSection from '../components/UI/PricingSection'
-import TestimonialsSection from '../components/UI/TestimonialsSection'
 import StatsSection from '../components/UI/StatsSection'
+import QuickBookingWidget from '../components/UI/QuickBookingWidget'
+import LiveCalendarAvailability from '../components/UI/LiveCalendarAvailability'
+import BenefitsGridHome from '../components/UI/BenefitsGridHome'
+import ReviewsShowcase from '../components/UI/ReviewsShowcase'
+import PromotionsBanner from '../components/UI/PromotionsBanner'
+import AdvancedFAQ from '../components/UI/AdvancedFAQ'
+import ServiceComparison from '../components/UI/ServiceComparison'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
@@ -37,21 +42,18 @@ export default function Home() {
         <meta name="revisit-after" content="7 days" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://leidycleaner.com/" />
         <meta property="og:title" content="Leidy Cleaner - Limpeza Profissional em Porto Alegre" />
         <meta property="og:description" content="Limpeza profissional residencial e comercial em Porto Alegre. Serviços premium com profissionais verificados." />
         <meta property="og:image" content="https://leidycleaner.com/og-image.jpg" />
 
-        {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://leidycleaner.com/" />
         <meta property="twitter:title" content="Leidy Cleaner - Limpeza Profissional em Porto Alegre" />
         <meta property="twitter:description" content="Limpeza profissional residencial e comercial em Porto Alegre. Serviços premium com profissionais verificados." />
         <meta property="twitter:image" content="https://leidycleaner.com/og-image.jpg" />
 
-        {/* Local Business Schema */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -86,40 +88,66 @@ export default function Home() {
       <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900">
         <Header />
         <main className="flex-grow">
-          {/* Hero Section Novo - Épico com background animado */}
           <HeroSectionNew />
 
           <div className="container mx-auto px-4 lg:px-8 space-y-20">
-            {/* Statistical Highlights - Números animados */}
-            <StatsSection />
+            <section data-aos="fade-up">
+              <QuickBookingWidget />
+            </section>
 
-            {/* How It Works - 4 passos visuais */}
-            <HowItWorksSection />
+            <section data-aos="fade-up" id="stats">
+              <StatsSection />
+            </section>
 
-            {/* Services Grid - 6 serviços expandibles */}
-            <ServicesGridSection />
+            <section data-aos="fade-up" id="benefits">
+              <BenefitsGridHome />
+            </section>
 
-            {/* Pricing Comparator - Anual vs Mensal */}
-            <PricingSection />
+            <section data-aos="fade-up" id="calendar">
+              <div className="flex justify-center my-16">
+                <LiveCalendarAvailability />
+              </div>
+            </section>
 
-            {/* Testimonials */}
-            <TestimonialsSection />
+            <section data-aos="fade-up" id="process">
+              <HowItWorksSection />
+            </section>
 
-            {/* FAQ Section - Accordion */}
-            <FAQ />
+            <section data-aos="fade-up" id="services">
+              <ServicesGridSection />
+            </section>
 
-            {/* Blog Preview - 3 últimos posts */}
-            <BlogSection />
+            <section data-aos="fade-up" id="comparison">
+              <ServiceComparison />
+            </section>
+
+            <section data-aos="fade-up" id="pricing">
+              <PricingSection />
+            </section>
+
+            <section data-aos="fade-up" id="promotions">
+              <PromotionsBanner />
+            </section>
+
+            <section data-aos="fade-up" id="reviews">
+              <ReviewsShowcase />
+            </section>
+
+            <section data-aos="fade-up" id="faq">
+              <AdvancedFAQ />
+            </section>
+
+            <section data-aos="fade-up" id="blog">
+              <BlogSection />
+            </section>
           </div>
 
-          {/* Newsletter CTA - Inscrição */}
-          <CTANewsletter />
+          <section data-aos="fade-up" id="newsletter">
+            <CTANewsletter />
+          </section>
         </main>
 
-        {/* Footer */}
         <Footer />
-
-        {/* Floating Chat Widget - sempre visível */}
         <FloatingChat />
       </div>
     </>

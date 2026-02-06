@@ -4,7 +4,7 @@ export const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('light');
-  const [accent, setAccent] = useState([16,185,129]); // rgb array (green default)
+  const [accent, setAccent] = useState([124, 58, 237]); // rgb array (purple-600 brand)
   const [fontScale, setFontScale] = useState(1);
 
   useEffect(() => {
@@ -23,7 +23,10 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
-      document.documentElement.style.setProperty('--accent', accent.join(' '));
+      // Expor tanto o RGB puro quanto a string rgb(...) para uso no CSS
+      const rgb = accent.join(',');
+      document.documentElement.style.setProperty('--accent-rgb', rgb);
+      document.documentElement.style.setProperty('--accent', `rgb(${rgb})`);
       document.documentElement.style.setProperty('--font-scale', fontScale.toString());
       window.localStorage.setItem('lc_theme', JSON.stringify({ theme, accent, fontScale }));
     }

@@ -93,7 +93,7 @@ export default function Footer() {
       {/* Top Section - CTA */}
       <div className="border-b border-gray-200 dark:border-slate-700 py-12 sm:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl px-6 sm:px-12 py-10 sm:py-14 text-white text-center shadow-lg">
+          <div className="bg-gradient-to-r from-purple-600 to-cyan-500 rounded-2xl px-6 sm:px-12 py-10 sm:py-14 text-white text-center shadow-lg">
             <h3 className="text-2xl sm:text-3xl font-bold mb-3">Pronto para Agendar?</h3>
             <p className="text-blue-100 mb-6 text-lg">Solicite um orçamento sem compromisso hoje mesmo</p>
             <Link href="/agendar">
@@ -113,12 +113,12 @@ export default function Footer() {
           <div className="col-span-1 lg:col-span-2">
             <Link href="/">
               <div className="flex items-center gap-3 mb-6 hover:opacity-80 transition-opacity">
-                <div className="relative w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                <div className="relative w-14 h-14 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
                   🧹
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 </div>
                 <div>
-                  <h4 className="text-xl font-black bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                  <h4 className="text-xl font-black bg-gradient-to-r from-purple-600 to-cyan-500 bg-clip-text text-transparent">
                     Leidy Cleaner
                   </h4>
                   <p className="text-xs text-gray-600 dark:text-gray-400">Limpeza Premium</p>
@@ -129,14 +129,14 @@ export default function Footer() {
               Especialista em limpeza profissional com técnicas modernas e produtos eco-friendly.
             </p>
             {/* Social Links */}
-            <div className="flex gap-3 mb-6">
+                <div className="flex gap-3 mb-6">
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-12 h-12 rounded-full bg-gray-200 dark:bg-slate-800 flex items-center justify-center text-xl hover:bg-gradient-to-br hover:from-blue-600 hover:to-cyan-500 hover:text-white transition-all ${social.color}`}
+                  className={`w-12 h-12 rounded-full bg-gray-200 dark:bg-slate-800 flex items-center justify-center text-xl hover:bg-gradient-to-br hover:from-purple-600 hover:to-cyan-500 hover:text-white transition-all ${social.color}`}
                   title={social.label}
                 >
                   {social.icon}
