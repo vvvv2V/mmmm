@@ -6,6 +6,7 @@ import { AuthProvider } from '../context/AuthContext'
 import { ToastProvider } from '../context/ToastContext'
 import ErrorBoundary from '../components/ErrorBoundary/ErrorBoundary'
 import MobileBottomNav from '../components/Layout/MobileBottomNav'
+import MobileTopBar from '../components/Layout/MobileTopBar'
 import { LoyaltyProvider } from '../components/UI/LoyaltySystem'
 import { NotificationSystem } from '../components/UI/NotificationSystem'
 import WhatsAppButton from '../components/UI/WhatsAppButton'
@@ -14,7 +15,7 @@ import PushNotifications from '../components/UI/PushNotifications'
 import PWABanner from '../components/UI/PWABanner'
 import Script from 'next/script'
 import { useRouter } from 'next/router'
-import * as gtag from '../../frontend/lib/gtag'
+import * as gtag from '../../lib/gtag'
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter()
@@ -50,7 +51,10 @@ export default function MyApp({ Component, pageProps }) {
               <LoyaltyProvider>
                 <NotificationSystem />
                 <div className="min-h-[100vh] mobile-only pb-20">
-                  <Component {...pageProps} />
+                  <MobileTopBar />
+                  <div className="pt-16">
+                    <Component {...pageProps} />
+                  </div>
                 </div>
                 <MobileBottomNav />
                 <WhatsAppButton />

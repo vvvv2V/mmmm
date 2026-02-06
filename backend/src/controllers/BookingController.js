@@ -373,6 +373,13 @@ class BookingController {
       const { bookingId } = req.params;
       const { reason } = req.body;
 
+      // Verificar permissão: clientes não podem deletar agendamentos via este endpoint
+      const role = req.user && (req.user.role || req.user.userRole || req.user);
+      if (role === 'customer') {
+        await db.close();
+        return res.status(403).json({ error: 'Permissão negada' });
+      }
+
       // Primeiro, obter o booking antes de cancelar (para pegar o userId)
       const booking = await db.get('SELECT * FROM bookings WHERE id = ?', bookingId);
       if (!booking) {

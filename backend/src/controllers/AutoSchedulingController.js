@@ -82,4 +82,24 @@ router.get('/occupancy/:professionalId', async (req, res) => {
   }
 });
 
+// GET /api/scheduling/staff/:staffId - acessar perfil/agendamento de um profissional
+router.get('/staff/:staffId', async (req, res) => {
+  try {
+    const staffId = req.params.staffId;
+    const user = req.user || {};
+
+    // Se o usuário for staff e estiver tentando acessar outro staff, negar
+    if (user.role === 'staff' && String(user.id) !== String(staffId) && String(user.userId) !== String(staffId)) {
+      return res.status(403).json({ error: 'Permissão negada' });
+    }
+
+    // Caso contrário, retornar um placeholder com dados mínimos
+    const profile = await AutoSchedulingService.getProfessionalProfile(staffId).catch(() => null);
+    if (!profile) return res.status(404).json({ error: 'Profissional não encontrado' });
+    res.json({ success: true, profile });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 module.exports = router;

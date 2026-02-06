@@ -2,7 +2,19 @@ const path = require('path');
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 
-const DB_PATH = path.join(__dirname, '..', '..', 'backend_data', 'database.sqlite');
+// Resolve DB path from a few common locations (repo-root or inside backend folder)
+const candidatePaths = [
+  path.join(__dirname, '..', '..', 'backend_data', 'database.sqlite'), // backend/backend_data
+  path.join(__dirname, '..', 'backend_data', 'database.sqlite'),       // backend/src/db/../backend_data
+  path.join(__dirname, '..', '..', '..', 'backend_data', 'database.sqlite'), // repo-root backend_data
+  path.join(__dirname, '..', '..', 'backend_data', 'limpeza.db'),
+  path.join(__dirname, '..', 'backend_data', 'limpeza.db')
+];
+
+let DB_PATH = candidatePaths.find(p => fs.existsSync(p));
+if (!DB_PATH) {
+  DB_PATH = candidatePaths[0];
+}
 
 function ensureDir() {
   const dir = path.dirname(DB_PATH);

@@ -106,7 +106,7 @@ export default function VideoTestimonials() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           {/* Main Video/Testimonial */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div
               key={currentTestimonial.id}
               initial={{ opacity: 0, scale: 0.9 }}

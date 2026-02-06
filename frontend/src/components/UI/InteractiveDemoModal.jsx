@@ -81,7 +81,7 @@ export default function InteractiveDemoModal({ isOpen, onClose }) {
 
               {/* Content */}
               <div className="p-8">
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                   <motion.div
                     key={currentSlide}
                     initial={{ opacity: 0, x: 100 }}

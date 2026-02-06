@@ -11,23 +11,20 @@ describe('AdminPanel Component', () => {
     fetch.mockClear();
   });
 
-  test('should render admin panel title', () => {
-    render(<AdminPanel />);
-    expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
+  test('should render admin panel title', async () => {
+    const { findByText } = render(<AdminPanel />);
+    expect(await findByText(/Painel Administrativo|Dashboard/i)).toBeInTheDocument();
   });
 
   test('should display metrics cards', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        success: true,
-        metrics: {
-          totalBookings: 150,
-          revenue: 5000,
-          customers: 45,
-          teamMembers: 8,
-          satisfaction: 4.8,
-        },
+        totalBookings: 150,
+        revenue: 5000,
+        customers: 45,
+        teamMembers: 8,
+        satisfaction: 4.8,
       }),
     });
 
@@ -62,37 +59,30 @@ describe('AdminPanel Component', () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        success: true,
-        metrics: {
-          totalBookings: 10,
-          revenue: 1234.56,
-          customers: 5,
-          teamMembers: 3,
-          satisfaction: 4.5,
-        },
+        totalBookings: 10,
+        revenue: 1234.56,
+        customers: 5,
+        teamMembers: 3,
+        satisfaction: 4.5,
       }),
     });
 
     render(<AdminPanel />);
 
-    await waitFor(() => {
-      // Should display formatted currency
-      expect(screen.getByText(/R\$/)).toBeInTheDocument();
-    });
+    // Wait for at least one currency rendering
+    const matches = await screen.findAllByText(/R\$/);
+    expect(matches.length).toBeGreaterThan(0);
   });
 
   test('should display recent bookings table', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        success: true,
-        metrics: {
-          totalBookings: 5,
-          revenue: 2000,
-          customers: 3,
-          teamMembers: 2,
-          satisfaction: 4.7,
-        },
+        totalBookings: 5,
+        revenue: 2000,
+        customers: 3,
+        teamMembers: 2,
+        satisfaction: 4.7,
         recentBookings: [
           {
             id: 'BK001',

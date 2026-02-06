@@ -36,6 +36,8 @@
     "cdn:savings": "node -e \"const CDNAssetOptimizerService = require('./backend/src/services/CDNAssetOptimizerService.js'); console.log(JSON.stringify(CDNAssetOptimizerService.calculateBandwidthSavings(), null, 2))\""
   },
   "dependencies": {
+    "@bull-board/api": "^6.16.4",
+    "@bull-board/express": "^6.16.4",
     "@sentry/node": "^7.84.0",
     "axios": "^1.3.0",
     "bcrypt": "^6.0.0",

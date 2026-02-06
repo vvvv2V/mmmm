@@ -200,6 +200,10 @@ class AuthController {
         tokens: {
           accessToken,
           refreshToken
+        },
+        data: {
+          token: accessToken,
+          refreshToken
         }
       });
 
@@ -280,6 +284,10 @@ class AuthController {
         },
         tokens: {
           accessToken,
+          refreshToken
+        },
+        data: {
+          token: accessToken,
           refreshToken
         }
       });

@@ -458,7 +458,8 @@ router.use('/search', SearchController);
 
 // ===== ANALYTICS DASHBOARD =====
 const AnalyticsController = require('../controllers/AnalyticsController');
-router.use('/analytics', authenticateToken, authorizeRole(['admin']), AnalyticsController);
+// Permitimos também managers e partners a acessar analytics
+router.use('/analytics', authenticateToken, authorizeRole(['admin','manager','partner']), AnalyticsController);
 
 // ===== RECURRING BOOKINGS =====
 const RecurringBookingController = require('../controllers/RecurringBookingController');
@@ -524,5 +525,25 @@ router.use('/auth', OAuthController);
 // ===== SWAGGER DOCUMENTATION =====
 const swaggerRoutes = require('./swagger');
 router.use('/', swaggerRoutes);
+
+// ===== WEBHOOKS (Phase 3B) =====
+const WebhookController = require('../controllers/WebhookController');
+router.use('/webhooks', authenticateToken, WebhookController);
+
+// ===== INTEGRATIONS (Phase 3B) =====
+const IntegrationController = require('../controllers/IntegrationController');
+router.use('/integrations', authenticateToken, IntegrationController);
+
+// ===== ADVANCED PAYMENTS - Boleto, Apple Pay, Google Pay, PayPal, Subscriptions (Phase 3B) =====
+const AdvancedPaymentController = require('../controllers/AdvancedPaymentController');
+router.use('/payments/advanced', authenticateToken, AdvancedPaymentController);
+
+// ===== ADVANCED EMAIL & SMS - Templates, Campaigns, A/B Testing (Phase 3B) =====
+const AdvancedEmailController = require('../controllers/AdvancedEmailController');
+router.use('/email', authenticateToken, AdvancedEmailController);
+
+// ===== ADVANCED 2FA - Biometric, WebAuthn, Recovery Codes, Trusted Devices (Phase 3B) =====
+const Advanced2FAController = require('../controllers/Advanced2FAController');
+router.use('/2fa', Advanced2FAController);
 
 module.exports = router;

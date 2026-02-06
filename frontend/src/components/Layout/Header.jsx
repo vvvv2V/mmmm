@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image'
 import ThemeSelector from '../UI/ThemeSelector';
 
 /**
@@ -22,8 +23,8 @@ export default function Header() {
           {/* Logo + Brand */}
           <Link href="/">
             <div className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
-              <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                🧹
+              <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl shadow-lg overflow-hidden">
+                <Image src="/images/logo.svg" alt="Leidy Cleaner" width={56} height={56} className="object-cover" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               </div>
               <div>

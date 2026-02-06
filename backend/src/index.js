@@ -21,6 +21,7 @@ const requestLoggingMiddleware = require('./middleware/requestLogging');
 const path = require('path');
 const { initCsrf } = require('./middleware/csrf');
 const { setupEmailQueueDashboard } = require('./utils/queueDashboard');
+const { ensureSchema } = require('./db/ensureSchema');
 
 const app = express();
 // ✅ CORRIGIDO: trust proxy configurado apenas se em produção com proxy real
@@ -116,7 +117,9 @@ app.use(express.static(path.join(__dirname, '..', '..', 'public')));
 
 // ===== ROUTES =====
 // Aplicar rate limiters apenas fora do ambiente de teste
-if (process.env.NODE_ENV !== 'test') {
+// Permitir sobrescrever o comportamento de rate limit via variável de ambiente
+// para facilitar execuções locais/CI sem bloquear testes.
+if (process.env.NODE_ENV !== 'test' && process.env.SKIP_RATE_LIMIT !== 'true') {
   app.use(limiter);
   app.use('/api/auth', authLimiter);  // Limiter rigoroso para autenticação
   app.use('/api', apiLimiter);        // Limiter padrão para API geral
@@ -125,6 +128,8 @@ if (process.env.NODE_ENV !== 'test') {
 app.use('/api', apiRoutes);
 app.use('/webhooks', webhookRoutes);
 app.use('/admin', adminRoutes);
+// Também expor rotas administrativas sob /api/admin para compatibilidade com testes
+app.use('/api/admin', adminRoutes);
 
 // Servir uploads estáticos
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
@@ -174,18 +179,29 @@ if (process.env.NODE_ENV !== 'production') {
 // ===== INICIALIZAÇÃO =====
 const PORT = process.env.PORT || 3001;
 
-// Não iniciar o servidor automaticamente durante os testes (evita handles abertos)
-if (process.env.NODE_ENV !== 'test') {
-  server.listen(PORT, () => {
-    logger.info(`🚀 Servidor rodando em http://localhost:${PORT}`);
-    // Inicializar scheduler automático
+// Iniciar o servidor. Por padrão não iniciamos durante testes, mas suportamos
+// sobrescrever esse comportamento com `START_SERVER_IN_TEST=true` para permitir
+// rodar a aplicação localmente em um processo de teste.
+if (process.env.NODE_ENV !== 'test' || process.env.START_SERVER_IN_TEST === 'true') {
+  (async () => {
     try {
-      Scheduler.init();
-      logger.info('Scheduler inicializado com sucesso');
+      await ensureSchema();
+      logger.info('Schema do banco verificado/atualizado');
     } catch (err) {
-      logger.error('Erro ao inicializar scheduler', err);
+      logger.warn('Falha ao garantir schema do banco:', err.message || err);
     }
-  });
+
+    server.listen(PORT, () => {
+      logger.info(`🚀 Servidor rodando em http://localhost:${PORT}`);
+      // Inicializar scheduler automático
+      try {
+        Scheduler.init();
+        logger.info('Scheduler inicializado com sucesso');
+      } catch (err) {
+        logger.error('Erro ao inicializar scheduler', err);
+      }
+    });
+  })();
 }
 
 module.exports = app;
