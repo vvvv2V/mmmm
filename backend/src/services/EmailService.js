@@ -90,7 +90,6 @@ class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Email enviado para ${clientEmail}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar email:', error);
@@ -146,7 +145,6 @@ class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Lembrança enviada para ${clientEmail}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar lembrança:', error);
@@ -198,7 +196,6 @@ class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Email de avaliação enviado para ${clientEmail}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar email de avaliação:', error);
@@ -249,7 +246,6 @@ class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Email de bônus desbloqueado enviado para ${clientEmail}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar email de bônus:', error);
@@ -316,7 +312,6 @@ class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Email de boas-vindas da newsletter enviado para ${email}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar email de boas-vindas:', error);
@@ -365,7 +360,6 @@ class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Newsletter enviado para ${email}`);
       return true;
     } catch (error) {
       console.error(`❌ Erro ao enviar newsletter para ${email}:`, error);
@@ -430,7 +424,6 @@ class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Confirmação de pagamento enviada para ${clientEmail}`);
       return result;
     } catch (error) {
       console.error('❌ Erro ao enviar confirmação de pagamento:', error);
@@ -486,7 +479,6 @@ class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Notificação de reembolso enviada para ${clientEmail}`);
       return result;
     } catch (error) {
       console.error('❌ Erro ao enviar notificação de reembolso:', error);
@@ -529,7 +521,6 @@ class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Email genérico enviado para ${to}`);
       return result;
     } catch (error) {
       console.error(`❌ Erro ao enviar email para ${to}:`, error);

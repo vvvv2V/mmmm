@@ -34,8 +34,6 @@ const logger = winston.createLogger({
   ],
 });
 
-// Sobrescrever console.log para ir proEmbarcar logger
-console.log = (...args) => logger.info(args.join(' '));
 console.error = (...args) => logger.error(args.join(' '));
 
 class EmailQueueWorker {

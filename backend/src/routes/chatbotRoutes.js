@@ -112,7 +112,6 @@ module.exports = (db, chatbotService) => {
       ]);
 
       // Notify admin (webhook or email)
-      console.log(`📞 Escalation ticket created for user ${user.name}`);
 
       res.json({
         success: true,

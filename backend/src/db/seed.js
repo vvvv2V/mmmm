@@ -3,7 +3,6 @@ const db = require('./index');
 
 async function runSeed() {
   try {
-    console.log('🌱 Iniciando seed de dados...');
 
     // ADMIN
     const adminPass = await bcrypt.hash('admin123', 10);
@@ -58,10 +57,6 @@ async function runSeed() {
       300
     );
 
-    console.log('✅ Seed executado com sucesso!');
-    console.log('👤 Admin: admin@leidy.com / admin123');
-    console.log('👥 Staff: maria@leidy.com / staff123');
-    console.log('🧑 Cliente: joao@email.com / client123');
   } catch (error) {
     console.error('❌ Erro ao executar seed:', error.message);
   }

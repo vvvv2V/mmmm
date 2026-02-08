@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import { RecurringScheduler } from '../components/UI/RecurringScheduler';
+import AvailableStaffWidget from '../components/AvailableStaffWidget';
 
 /**
  * Página de Agendamento - Formulário interativo em 4 passos
@@ -11,6 +12,7 @@ export default function Agendar() {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('09:00');
   const [selectedServices, setSelectedServices] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState(null);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -196,6 +198,21 @@ export default function Agendar() {
                       />
                     </div>
                   </div>
+
+                  {/* Staff Availability Widget */}
+                  {selectedDate && selectedTime && selectedServices.length > 0 && (
+                    <div className="mt-8">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                        👥 Profissionais Disponíveis
+                      </h3>
+                      <AvailableStaffWidget
+                        date={selectedDate}
+                        time={selectedTime}
+                        serviceId={selectedServices[0]?.id}
+                        onSelectStaff={setSelectedStaff}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 

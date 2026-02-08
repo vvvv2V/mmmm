@@ -21,7 +21,6 @@ class NotificationController {
       // Enviar notificação push
       // await this.sendPushNotification(user.id, 'Agendamento confirmado!');
 
-      console.log(`Confirmação enviada para agendamento ${bookingId}`);
       return true;
     } catch (error) {
       console.error('Erro ao enviar confirmação:', error);
@@ -43,7 +42,6 @@ class NotificationController {
       //   await this.sendSMS(user.phone, `Não se esqueça: amanhã tem limpeza!`);
       // }
 
-      console.log('Lembretes enviados');
       return true;
     } catch (error) {
       console.error('Erro ao enviar lembretes:', error);
@@ -64,7 +62,6 @@ class NotificationController {
       //   await this.sendSMS(member.phone, `Novo agendamento para ${booking.date}`);
       // }
 
-      console.log(`Equipa notificada sobre agendamento ${bookingId}`);
       return true;
     } catch (error) {
       console.error('Erro ao notificar equipa:', error);
@@ -86,7 +83,6 @@ class NotificationController {
       // Solicitar avaliação em 3 dias
       // await SchedulerService.schedule('request-review', bookingId, 3 * 24 * 60 * 60 * 1000);
 
-      console.log(`Follow-up enviado para agendamento ${bookingId}`);
       return true;
     } catch (error) {
       console.error('Erro ao enviar follow-up:', error);
@@ -100,7 +96,6 @@ class NotificationController {
   async sendEmail(to, template, data) {
     try {
       // Implementar com nodemailer ou sendgrid
-      console.log(`Email enviado para ${to} com template ${template}`);
       return true;
     } catch (error) {
       console.error('Erro ao enviar email:', error);
@@ -114,7 +109,6 @@ class NotificationController {
   async sendSMS(to, message) {
     try {
       // Implementar com Twilio ou outro serviço
-      console.log(`SMS enviado para ${to}: ${message}`);
       return true;
     } catch (error) {
       console.error('Erro ao enviar SMS:', error);
@@ -128,7 +122,6 @@ class NotificationController {
   async sendPushNotification(userId, message) {
     try {
       // Implementar com Firebase Cloud Messaging
-      console.log(`Push notification enviada para usuário ${userId}: ${message}`);
       return true;
     } catch (error) {
       console.error('Erro ao enviar push notification:', error);

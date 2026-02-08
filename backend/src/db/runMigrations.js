@@ -6,7 +6,6 @@ const MIGRATIONS_PATH = path.join(__dirname, 'migrations.sql');
 
 async function runMigrations() {
   try {
-    console.log('🔧 Iniciando migrations do banco de dados...');
     
     const db = await getDb();
     const sql = fs.readFileSync(MIGRATIONS_PATH, 'utf8');
@@ -28,10 +27,6 @@ async function runMigrations() {
       }
     }
     
-    console.log('✅ Migrations executadas com sucesso!');
-    console.log('✅ Tabelas criadas: users, services, bookings, payments');
-    console.log('✅ Índices criados para performance');
-    console.log('✅ Dados seed carregados');
     
     await db.close();
   } catch (error) {

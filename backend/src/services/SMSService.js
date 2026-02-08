@@ -25,7 +25,6 @@ class SMSService {
         to: phone
       });
 
-      console.log(`✅ SMS de confirmação enviado para ${phone}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar SMS de confirmação:', error);
@@ -44,7 +43,6 @@ class SMSService {
         to: phone
       });
 
-      console.log(`✅ SMS de lembrança enviado para ${phone}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar SMS de lembrança:', error);
@@ -63,7 +61,6 @@ class SMSService {
         to: phone
       });
 
-      console.log(`✅ SMS para funcionária enviado para ${phone}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar SMS para funcionária:', error);
@@ -82,7 +79,6 @@ class SMSService {
         to: phone
       });
 
-      console.log(`✅ SMS de bônus desbloqueado enviado para ${phone}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar SMS de bônus:', error);
@@ -101,7 +97,6 @@ class SMSService {
         to: phone
       });
 
-      console.log(`✅ SMS enviado para ${phone}`);
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar SMS:', error);

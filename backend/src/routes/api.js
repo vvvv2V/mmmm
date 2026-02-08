@@ -546,4 +546,32 @@ router.use('/email', authenticateToken, AdvancedEmailController);
 const Advanced2FAController = require('../controllers/Advanced2FAController');
 router.use('/2fa', Advanced2FAController);
 
+// ===== STAFF AVAILABILITY - Real-time availability widget =====
+const staffAvailabilityRoutes = require('./staffAvailabilityRoutes');
+router.use('/staff', staffAvailabilityRoutes);
+
+// ===== DYNAMIC PRICING =====
+const PricingController = require('../controllers/PricingController');
+router.post('/pricing/calculate', (req, res) => {
+  PricingController.calculatePrice(req, res);
+});
+router.get('/pricing/simulate', (req, res) => {
+  PricingController.simulatePriceOptions(req, res);
+});
+
+// ===== INTELLIGENT RECOMMENDATIONS (CROSS-SELLING) =====
+const RecommendationController = require('../controllers/RecommendationController');
+router.get('/recommendations/smart', (req, res) => {
+  RecommendationController.getSmartRecommendations(req, res);
+});
+router.get('/recommendations/popular', (req, res) => {
+  RecommendationController.getPopularServices(req, res);
+});
+router.get('/recommendations/upsell', (req, res) => {
+  RecommendationController.getUpsellRecommendations(req, res);
+});
+router.get('/recommendations/at-risk', authenticateToken, authorizeRole(['admin']), (req, res) => {
+  RecommendationController.getAtRiskCustomers(req, res);
+});
+
 module.exports = router;

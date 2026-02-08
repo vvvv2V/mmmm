@@ -46,7 +46,6 @@ class NotificationService {
         body: message
       });
 
-      console.log(`✅ WhatsApp sent to ${phoneNumber}: ${response.sid}`);
       return { success: true, messageId: response.sid };
     } catch (err) {
       console.error('❌ WhatsApp error:', err.message);
@@ -65,7 +64,6 @@ class NotificationService {
         body: message
       });
 
-      console.log(`✅ SMS sent to ${phoneNumber}: ${response.sid}`);
       return { success: true, messageId: response.sid };
     } catch (err) {
       console.error('❌ SMS error:', err.message);
@@ -85,7 +83,6 @@ class NotificationService {
         html: htmlContent
       });
 
-      console.log(`✅ Email sent to ${recipient}: ${response.messageId}`);
       return { success: true, messageId: response.messageId };
     } catch (err) {
       console.error('❌ Email error:', err.message);
@@ -126,7 +123,6 @@ class NotificationService {
       const channels = this.getEnabledChannels(prefs);
 
       if (channels.length === 0) {
-        console.log(`User ${userId} has no notification channels enabled`);
         return;
       }
 
@@ -185,7 +181,6 @@ class NotificationService {
           JSON.stringify(schedule.channels)
         ]);
 
-        console.log(`📬 Scheduled ${schedule.type} for booking ${bookingId}`);
       }
     } catch (err) {
       console.error('Error scheduling reminders:', err);
@@ -379,7 +374,6 @@ Qualquer dúvida, entre em contato! 📞`;
         ]);
       }
 
-      console.log(`Preferences updated for user ${userId}`);
     } catch (err) {
       console.error('Error updating preferences:', err);
       throw err;
@@ -400,7 +394,6 @@ Qualquer dúvida, entre em contato! 📞`;
         LIMIT 100
       `, [now]);
 
-      console.log(`📬 Processing ${pending.length} pending notifications...`);
 
       for (const notif of pending) {
         await this.processNotification(notif);
@@ -487,7 +480,6 @@ Qualquer dúvida, entre em contato! 📞`;
       this.processQueue();
     });
 
-    console.log('✅ Notification queue processor started');
   }
 }
 

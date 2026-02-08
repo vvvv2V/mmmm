@@ -17,12 +17,10 @@ if (process.env.DATABASE_URL) {
   try {
     pgPool = new Pool({ connectionString: process.env.DATABASE_URL });
     mode = 'pg';
-    console.log('DB: Using PostgreSQL via DATABASE_URL');
   } catch (err) {
     console.warn('DB: Could not initialize Postgres pool, falling back to SQLite', err.message);
   }
 } else {
-  console.log('DB: Using SQLite local database');
 }
 
 const sqliteDbPromise = sqlite.getDb;

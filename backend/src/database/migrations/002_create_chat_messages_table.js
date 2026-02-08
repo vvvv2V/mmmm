@@ -104,7 +104,6 @@ module.exports = {
       await db.exec(createChatMessagesTable);
       await db.exec(createEncryptedFilesTable);
       await db.exec(createCryptoAuditTable);
-      console.log('✅ Chat tables migrated successfully');
     } catch (error) {
       console.error('❌ Chat migration failed:', error);
       throw error;
