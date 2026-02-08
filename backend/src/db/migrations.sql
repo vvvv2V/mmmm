@@ -192,4 +192,5 @@ ALTER TABLE bookings ADD COLUMN admin_response_at DATETIME;
 ALTER TABLE bookings ADD COLUMN staff_id INTEGER;
 ALTER TABLE bookings ADD COLUMN completed_at DATETIME;
 ALTER TABLE bookings ADD COLUMN photos_count INTEGER DEFAULT 0;
-ALTER TABLE bookings ADD FOREIGN KEY (staff_id) REFERENCES users(id);
+-- Nota: SQLite não permite ADD FOREIGN KEY via ALTER TABLE em runtime.
+-- A referência será mantida nas definições iniciais das tabelas quando possível.

@@ -470,8 +470,7 @@ const PriceHistoryController = require('../controllers/PriceHistoryController');
 router.use('/prices', authenticateToken, PriceHistoryController);
 
 // ===== PERSONALIZED RECOMMENDATIONS =====
-const RecommendationController = require('../controllers/RecommendationController');
-router.use('/recommendations', authenticateToken, RecommendationController);
+// As rotas de recomendações são definidas mais abaixo com handlers explícitos.
 
 // ===== PAYMENT INTEGRATION (Stripe + PIX) =====
 const PaymentIntegrationController = require('../controllers/PaymentIntegrationController');
