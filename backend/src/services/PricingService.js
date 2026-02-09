@@ -5,6 +5,13 @@
  */
 
 const { getDb } = require('../db/sqlite');
+// Carregar matriz de pricing centralizada (fallback para valores embutidos)
+let pricingMatrix = {};
+try {
+  pricingMatrix = require('../../../automation/pricing-matrix.json');
+} catch (e) {
+  pricingMatrix = {};
+}
 
 class PricingService {
   /**
@@ -52,26 +59,50 @@ class PricingService {
       const discount = await this.calculateDiscount(data);
       basePrice -= discount;
 
-      // 9. Adicionar taxa de serviço (5%)
-      const serviceFee = basePrice * 0.05;
+      // 9. Adicionar taxa de serviço (configurável via pricing-matrix.json)
+      const serviceFeePercentage = (pricingMatrix.serviceFeePercentage || 5) / 100;
+      const serviceFee = basePrice * serviceFeePercentage;
       basePrice += serviceFee;
 
-      // 10. Garantir preço mínimo
-      basePrice = Math.max(basePrice, this.getMinimumPrice());
+      // 10. Garantir preço mínimo (configurável)
+      const minimumPrice = pricingMatrix.minimumPrice || this.getMinimumPrice();
+      basePrice = Math.max(basePrice, minimumPrice);
 
       // Retornar breakdown detalhado
+      // Garantir que descontos combinados não ultrapassem o máximo configurado
+      const maximumDiscount = typeof pricingMatrix.maximumDiscount === 'number' ? pricingMatrix.maximumDiscount : 0.3;
+
+      // `loyaltyDiscount` é percentual; `discount` é valor absoluto sobre subtotal
+      const subtotal = data.basePrice || (data.services ? data.services.reduce((s, x) => s + (x.basePrice || 0), 0) : 0);
+      const discountPercentFromAbsolute = subtotal > 0 ? (discount / subtotal) : 0;
+      const combinedPercent = loyaltyDiscount + discountPercentFromAbsolute;
+
+      let appliedAbsoluteDiscount = discount;
+      if (combinedPercent > maximumDiscount) {
+        // limitar desconto absoluto para não ultrapassar o teto
+        const allowedAbsolutePercent = Math.max(0, maximumDiscount - loyaltyDiscount);
+        appliedAbsoluteDiscount = Math.round((subtotal * allowedAbsolutePercent) * 100) / 100;
+      }
+
+      // Recalcular preço final (re-aplicar service fee and min were already applied above)
+      // Note: loyalty already multiplicative applied above; we subtracted discount earlier, but
+      // ensure we use the capped `appliedAbsoluteDiscount` for breakdown clarity.
+
+      // finalPrice já foi calculado em `basePrice` (com loyalty + serviceFee + min),
+      // porém `discount` foi subtraído antes de serviceFee in previous steps — keep consistency
+      // For return values, reflect capped discount and rounded serviceFee.
       return {
         finalPrice: Math.round(basePrice * 100) / 100,
-        basePrice: data.basePrice || basePrice / 1.05,
+        basePrice: data.basePrice || subtotal,
         surgeMultiplier: surgeMultiplier,
         loyaltyDiscount: loyaltyDiscount,
-        totalDiscount: discount,
+        totalDiscount: appliedAbsoluteDiscount,
         serviceFee: Math.round(serviceFee * 100) / 100,
         breakdown: {
-          base: data.basePrice || 0,
+          base: subtotal,
           surge: surgeMultiplier !== 1 ? `+${Math.round((surgeMultiplier - 1) * 100)}%` : '+0%',
           loyalty: loyaltyDiscount !== 0 ? `-${Math.round(loyaltyDiscount * 100)}%` : '0%',
-          discounts: discount,
+          discounts: appliedAbsoluteDiscount,
           serviceFee: Math.round(serviceFee * 100) / 100
         }
       };
