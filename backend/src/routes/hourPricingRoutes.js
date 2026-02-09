@@ -169,4 +169,45 @@ router.get('/suggest-package', (req, res) => {
   }
 });
 
+/**
+ * POST /api/pricing/booking-estimate
+ * Estimar preço de um booking específico com duração em horas
+ * Body: { durationHours, useHourCredit }
+ */
+router.post('/booking-estimate', authenticateToken, async (req, res) => {
+  try {
+    const { durationHours = 1, useHourCredit = false } = req.body;
+    const userId = req.user?.id;
+
+    const BookingPricingService = require('../services/BookingPricingService');
+    const result = await BookingPricingService.calculateBookingPrice({
+      userId: userId,
+      durationHours: parseFloat(durationHours),
+      useHourCredit: useHourCredit,
+    });
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    // Incluir breakdown visual
+    const breakdown = BookingPricingService.generatePriceBreakdown(
+      result.hourPrice,
+      result.paidWithCredits
+    );
+
+    res.json({
+      success: true,
+      ...result,
+      breakdown: breakdown,
+    });
+  } catch (error) {
+    console.error('[HourPricingController] Error estimating booking price:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 module.exports = router;
