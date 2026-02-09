@@ -141,7 +141,7 @@ class SlotRecommendationService {
         `SELECT id, name, description, base_price, category
          FROM services
          WHERE category IN (${complementary.map(() => '?').join(',')})
-         AND is_active = 1
+         AND active = 1
          ORDER BY base_price DESC
          LIMIT 3`,
         ...complementary

@@ -235,7 +235,7 @@ const serviceSchemas = {
     category: Joi.string().trim().required(),
     basePrice: Joi.number().min(0).required(),
     duration: primitives.duration,
-    is_active: Joi.boolean().default(true)
+    active: Joi.boolean().default(true)
   }),
 
   /**
@@ -246,7 +246,7 @@ const serviceSchemas = {
     description: Joi.string().trim().max(500).optional(),
     basePrice: Joi.number().min(0).optional(),
     duration: primitives.duration.optional(),
-    is_active: Joi.boolean().optional()
+    active: Joi.boolean().optional()
   })
 };
 

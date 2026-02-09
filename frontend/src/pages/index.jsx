@@ -5,7 +5,8 @@ import Footer from '../components/Layout/Footer'
 import BlogSection from '../components/UI/BlogSection'
 import CTANewsletter from '../components/UI/CTANewsletter'
 import FloatingChat from '../components/UI/FloatingChat'
-import HeroSectionNew from '../components/UI/HeroSectionNew'
+import HeroSectionGreen from '../components/UI/HeroSectionGreen'
+import FeaturesGridGreen from '../components/UI/FeaturesGridGreen'
 import HowItWorksSection from '../components/UI/HowItWorksSection'
 import ServicesGridSection from '../components/UI/ServicesGridSection'
 import PricingSection from '../components/UI/PricingSection'
@@ -88,7 +89,9 @@ export default function Home() {
       <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900">
         <Header />
         <main className="flex-grow">
-          <HeroSectionNew />
+          <HeroSectionGreen />
+
+          <FeaturesGridGreen />
 
           <div className="container mx-auto px-4 lg:px-8 space-y-20">
             <section data-aos="fade-up">

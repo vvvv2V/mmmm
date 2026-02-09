@@ -149,7 +149,7 @@ router.post('/services', requireAdmin, async (req, res) => {
     }
 
     await db.run(
-      `INSERT INTO services (name, description, category, base_price, duration_minutes, image_url, is_active, created_at)
+      `INSERT INTO services (name, description, category, base_price, duration_minutes, image_url, active, created_at)
        VALUES (?, ?, ?, ?, ?, ?, 1, datetime('now'))`,
       name,
       description || '',
@@ -203,7 +203,7 @@ router.put('/services/:id', requireAdmin, async (req, res) => {
 
     await db.run(
       `UPDATE services 
-       SET name = ?, description = ?, base_price = ?, duration_minutes = ?, is_active = ?
+       SET name = ?, description = ?, base_price = ?, duration_minutes = ?, active = ?
        WHERE id = ?`,
       name,
       description,
@@ -252,7 +252,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
     );
 
     // Serviços ativos
-    const [{ activeServices }] = await db.all('SELECT COUNT(*) as activeServices FROM services WHERE is_active = 1');
+    const [{ activeServices }] = await db.all('SELECT COUNT(*) as activeServices FROM services WHERE active = 1');
 
     // Staff ativo
     const [{ activeStaff }] = await db.all('SELECT COUNT(*) as activeStaff FROM users WHERE role = "staff" AND is_active = 1');

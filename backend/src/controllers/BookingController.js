@@ -117,12 +117,12 @@ class BookingController {
           user_id, service_id, date, time, duration_hours,
           address, phone, base_price, extra_quarter_hours,
           staff_fee, post_work_adjustment, final_price,
-          is_post_work, has_extra_quarter, has_staff, status, notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, validated.userId, validated.serviceId, validated.date, validated.time, 
+          is_post_work, has_extra_quarter, status, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, validated.userId, validated.serviceId, validated.date, validated.time, 
       validated.durationHours, validated.address, validated.phone,
       booking.base_price, booking.extra_quarter_hours,
       booking.staff_fee, booking.post_work_adjustment, booking.final_price,
-      booking.is_post_work, booking.has_extra_quarter, hasStaff ? 1 : 0, 'pending', sanitizedNotes);
+      booking.is_post_work, booking.has_extra_quarter, 'pending', sanitizedNotes);
 
       // ✅ Invalidar cache
       CacheService.invalidatePattern(`user:${validated.userId}:*`);
@@ -175,6 +175,10 @@ class BookingController {
         error: error.message,
         userId: req.body?.userId 
       });
+        logger.error('Error creating booking', { 
+          error: error.message,
+          stack: error.stack
+        });
 
       if (error.message.includes('Validação falhou')) {
         return res.status(400).json({
@@ -187,6 +191,10 @@ class BookingController {
         error: 'Erro ao criar agendamento',
         code: 'BOOKING_CREATE_ERROR'
       });
+        logger.error('Error creating booking', { 
+          error: error.message,
+          stack: error.stack
+        });
     }
   }
 
@@ -207,9 +215,12 @@ class BookingController {
    */
   async getUserCached(userId) {
     const db = await getDb();
-    const user = await QueryCacheService.getUser(db, userId);
-    await db.close();
-    return user;
+    try {
+      const user = await QueryCacheService.getUser(db, userId);
+      return user;
+    } finally {
+      await db.close();
+    }
   }
 
 

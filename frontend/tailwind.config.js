@@ -8,31 +8,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // � Azul principal (redesign)
+        // 🟢 Verde Leidy Cleaner (principal)
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c3d66',
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#145231',
         },
-        // 🔷 Cyan/Teal (complementar)
+        // � Teal/Emerald (complementar)
         accent: {
-          50: '#ecf8ff',
-          100: '#cff0ff',
-          200: '#a5e7ff',
-          300: '#75d5ff',
-          400: '#4eb3ff',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
+          50: '#f0fdfa',
+          100: '#ccfbf1',
+          200: '#99f6e4',
+          300: '#5eead4',
+          400: '#2dd4bf',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
         },
         // 🟢 Verde (sucesso/destaque)
         success: {
@@ -121,8 +121,9 @@ module.exports = {
         'fade-in': 'fadeIn 0.3s ease-in',
         'slide-up': 'slideUp 0.3s ease-out',
         'float': 'float 3s ease-in-out infinite',
-        'glow': 'glow 2s ease-in-out infinite',
+        'glow': 'glowGreen 2s ease-in-out infinite',
         'shimmer': 'shimmer 2s infinite',
+        'pulse-green': 'pulseGreen 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
@@ -137,9 +138,13 @@ module.exports = {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-10px)' },
         },
-        glow: {
-          '0%, 100%': { 'box-shadow': '0 0 5px rgba(6, 182, 212, 0.5)' },
-          '50%': { 'box-shadow': '0 0 20px rgba(6, 182, 212, 0.8)' },
+        glowGreen: {
+          '0%, 100%': { 'box-shadow': '0 0 5px rgba(34, 197, 94, 0.5)' },
+          '50%': { 'box-shadow': '0 0 20px rgba(34, 197, 94, 0.8)' },
+        },
+        pulseGreen: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
         },
         shimmer: {
           '0%': { backgroundPosition: '-1000px 0' },

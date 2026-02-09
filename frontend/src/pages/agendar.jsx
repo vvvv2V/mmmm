@@ -3,6 +3,8 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { RecurringScheduler } from '../components/UI/RecurringScheduler';
 import AvailableStaffWidget from '../components/AvailableStaffWidget';
+import { apiCall } from '../config/api';
+import toast from 'react-hot-toast';
 
 /**
  * Página de Agendamento - Formulário interativo em 4 passos
@@ -47,26 +49,63 @@ export default function Agendar() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedDate || !fullName || !phone || !address) {
-      alert('Por favor, preencha todos os campos obrigatórios');
+    if (!selectedDate || !fullName || !phone || !address || selectedServices.length === 0) {
+      toast.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Simular envio de agendamento
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setSubmitted(true);
-      // Limpar formulário
-      setStep(1);
-      setSelectedDate('');
-      setFullName('');
-      setPhone('');
-      setEmail('');
-      setAddress('');
-      setSelectedServices([]);
+      // Recuperar user ID do localStorage ou contexto
+      const storedUser = localStorage.getItem('user');
+      const userId = storedUser ? JSON.parse(storedUser).id : null;
+
+      if (!userId) {
+        toast.error('Você precisa estar logado para agendar');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Enviar agendamento para o backend
+      const bookingData = {
+        userId,
+        serviceId: selectedServices[0]?.id,
+        date: selectedDate,
+        time: selectedTime,
+        address,
+        phone,
+        email: email || '',
+        notes: notes || '',
+        durationHours: 2,
+        hasStaff: selectedStaff ? 1 : 0,
+        isRecurring: isRecurring
+      };
+
+      const response = await apiCall('/api/bookings', {
+        method: 'POST',
+        body: JSON.stringify(bookingData)
+      });
+
+      if (response.success || response.id) {
+        toast.success('Agendamento confirmado! Você receberá uma confirmação em breve.');
+        setSubmitted(true);
+        // Limpar formulário
+        setStep(1);
+        setSelectedDate('');
+        setFullName('');
+        setPhone('');
+        setEmail('');
+        setAddress('');
+        setNotes('');
+        setSelectedServices([]);
+        setSelectedStaff(null);
+        setIsRecurring(false);
+      } else {
+        toast.error(response.error || 'Erro ao processar agendamento');
+      }
     } catch (error) {
-      alert('Erro ao processar agendamento');
+      console.error('Erro ao enviar agendamento:', error);
+      toast.error(error.message || 'Erro ao processar agendamento. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }

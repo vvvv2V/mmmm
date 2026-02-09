@@ -70,7 +70,7 @@ class StaffAvailabilityController {
           FROM users s
           LEFT JOIN bookings b ON b.team_member_id = s.id
           WHERE s.role = 'staff' 
-          AND s.is_active = 1
+          AND s.active = 1
           GROUP BY s.id
           HAVING availability_percent > 0
           ORDER BY availability_percent DESC, avg_rating DESC

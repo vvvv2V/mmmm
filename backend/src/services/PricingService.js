@@ -262,6 +262,17 @@ class PricingService {
 
     return options;
   }
+
+  /**
+   * Compatibilidade: API legada `calculatePrice`.
+   * Retorna apenas o `finalPrice` numérico para testes e código antigo.
+   */
+  async calculatePrice(data) {
+    const result = await this.calculateDynamicPrice(data);
+    if (result && typeof result.finalPrice === 'number') return result.finalPrice;
+    // fallback: try to coerce if structure changed
+    return Number(result) || 0;
+  }
 }
 
 module.exports = new PricingService();

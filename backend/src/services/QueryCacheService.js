@@ -82,7 +82,7 @@ class QueryCacheService {
 
     try {
       const service = await db.get(
-        'SELECT * FROM services WHERE id = ? AND is_active = 1',
+        'SELECT * FROM services WHERE id = ? AND active = 1',
         serviceId
       );
 
@@ -111,7 +111,7 @@ class QueryCacheService {
 
     try {
       const services = await db.all(
-        'SELECT * FROM services WHERE is_active = 1 ORDER BY name'
+        'SELECT * FROM services WHERE active = 1 ORDER BY name'
       );
 
       CacheService.set(cacheKey, services, this.TTL.SERVICES);
@@ -136,6 +136,7 @@ class QueryCacheService {
     }
 
     try {
+      // Tentar tabela dedicada `staff` (alguns deployments a têm)
       const staff = await db.all(
         `SELECT id, name, email, phone, rating, service_ids
          FROM staff
@@ -147,8 +148,20 @@ class QueryCacheService {
 
       return staff;
     } catch (error) {
-      logger.error('Error fetching active staff', { error: error.message });
-      throw error;
+      // Fallback: alguns bancos armazenam staff como users com role='staff'
+      try {
+        const fallback = await db.all(
+          `SELECT id, name, email, phone, rating, NULL as service_ids
+           FROM users
+           WHERE role = 'staff' AND is_active = 1 AND verified = 1
+           ORDER BY rating DESC`
+        );
+        CacheService.set(cacheKey, fallback, this.TTL.STAFF);
+        return fallback;
+      } catch (fallbackErr) {
+        logger.error('Error fetching active staff', { error: error.message, fallback: fallbackErr.message });
+        throw error;
+      }
     }
   }
 
@@ -165,8 +178,9 @@ class QueryCacheService {
     }
 
     try {
+      // Selecionar apenas colunas essenciais para evitar falhas caso migrations tenham diferenças
       const user = await db.get(
-        `SELECT id, email, name, phone, loyalty_bonus, total_bookings, avg_rating, is_premium
+        `SELECT id, email, name, phone, role, is_active, created_at
          FROM users WHERE id = ?`,
         userId
       );
@@ -177,8 +191,21 @@ class QueryCacheService {
 
       return user;
     } catch (error) {
-      logger.error('Error fetching user', { error: error.message });
-      throw error;
+      logger.error('Error fetching user (primary query)', { error: error.message });
+      // Fallback: tentar buscar apenas colunas mínimas
+      try {
+        const fallback = await db.get(
+          'SELECT id, email, name FROM users WHERE id = ?',
+          userId
+        );
+        if (fallback) {
+          CacheService.set(cacheKey, fallback, this.TTL.USERS);
+        }
+        return fallback;
+      } catch (fallbackErr) {
+        logger.error('Error fetching user (fallback)', { error: fallbackErr.message });
+        return null;
+      }
     }
   }
 
