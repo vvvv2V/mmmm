@@ -12,8 +12,9 @@ export default function Header() {
 
   const navLinks = [
     { href: '/', label: 'Home', icon: '🏠' },
-    { href: '/servicos', label: 'Servicos', icon: '✨' },
-    { href: '/agendar', label: 'Agendar', icon: '📅' },
+    { href: '/servicos', label: 'Serviços', icon: '✨' },
+    { href: '/#como_funciona', label: 'Como Funciona', icon: '🔄', isAnchor: true },
+    { href: '/#pacotes', label: 'Pacotes', icon: '🎁', isAnchor: true },
     { href: '/dashboard', label: 'Minha Conta', icon: '👤' }
   ];
 
@@ -66,10 +67,10 @@ export default function Header() {
           {/* Right Actions */}
           <div className="flex items-center gap-3 sm:gap-4">
             <ThemeSelector />
-            <Link href="/agendar">
-              <div className="hidden sm:inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-slate-900 dark:bg-cyan-600 hover:bg-slate-800 dark:hover:bg-cyan-500 text-white transition-all font-bold text-sm shadow-lg">
-                <span>📅</span>
-                Agendar
+            <Link href="/HourCheckout">
+              <div className="hidden sm:inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-lg text-white transition-all font-bold text-sm shadow-lg">
+                <span>💰</span>
+                Comprar Horas
               </div>
             </Link>
 
@@ -93,7 +94,7 @@ export default function Header() {
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <div 
-                  className="block px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors font-medium flex items-center gap-2"
+                  className="block px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-slate-800 rounded-lg transition-colors font-medium flex items-center gap-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <span>{link.icon}</span>
@@ -101,12 +102,12 @@ export default function Header() {
                 </div>
               </Link>
             ))}
-            <Link href="/agendar">
+            <Link href="/HourCheckout">
               <div 
-                className="block px-4 py-3 mt-4 bg-slate-900 dark:bg-cyan-600 text-white rounded-lg font-bold text-center hover:shadow-lg transition-all hover:bg-slate-800 dark:hover:bg-cyan-500"
+                className="block px-4 py-3 mt-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-bold text-center hover:shadow-lg transition-all"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Agendar Agora
+                💰 Comprar Horas Agora
               </div>
             </Link>
           </nav>

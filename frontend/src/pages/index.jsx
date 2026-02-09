@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import Header from '../components/Layout/Header'
 import Footer from '../components/Layout/Footer'
 import HourCalculator from '../components/Pricing/HourCalculator'
+import TestimonialsSection from '../components/Sections/TestimonialsSection'
+import GallerySection from '../components/Sections/GallerySection'
+import BlogSection from '../components/Sections/BlogSection'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
+import { trackCTAClick, trackPriceCalculation, trackSectionView, setupScrollTracking, setupSessionTracking } from '../utils/analytics'
 
 export default function Home() {
   const [selectedHours, setSelectedHours] = useState(40);
   const [priceEstimate, setPriceEstimate] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     AOS.init({
@@ -18,10 +24,22 @@ export default function Home() {
       once: true,
       easing: 'ease-out-cubic'
     })
+
+    // Setup analytics tracking
+    setupScrollTracking();
+    setupSessionTracking('index');
+
+    // Track initial section views
+    trackSectionView('hero');
   }, [])
 
   const handleCalculatePrice = (result) => {
     setPriceEstimate(result);
+    trackPriceCalculation(result.hours, result.totalPrice, result.characteristics);
+  };
+
+  const handleCtaClick = (ctaName, location) => {
+    trackCTAClick(ctaName, location);
   };
 
   return (
@@ -125,10 +143,10 @@ export default function Home() {
 
                   {/* Botões */}
                   <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                    <Link href="/HourCheckout" className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg hover:shadow-xl transform hover:scale-105 transition duration-300 text-center">
+                    <Link href="/HourCheckout" onClick={() => handleCtaClick('Comprar Horas', 'hero')} className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg hover:shadow-xl transform hover:scale-105 transition duration-300 text-center">
                       💰 Comprar Horas Agora
                     </Link>
-                    <button className="px-8 py-4 border-2 border-green-600 text-green-600 font-bold rounded-lg hover:bg-green-50 transition duration-300">
+                    <button onClick={() => handleCtaClick('Ver Disponibilidade', 'hero')} className="px-8 py-4 border-2 border-green-600 text-green-600 font-bold rounded-lg hover:bg-green-50 transition duration-300">
                       📅 Ver Disponibilidade
                     </button>
                   </div>
@@ -209,7 +227,7 @@ export default function Home() {
               </div>
 
               <div className="mt-12 text-center">
-                <Link href="/HourCheckout" className="inline-block px-8 py-4 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">
+                <Link href="/HourCheckout" onClick={() => handleCtaClick('Ver Todos os Pacotes', 'pacotes')} className="inline-block px-8 py-4 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">
                   Ver Todos os Pacotes
                 </Link>
               </div>
@@ -253,7 +271,7 @@ export default function Home() {
               <p className="text-xl mb-8 text-green-50">
                 Comece agora mesmo selecionando suas horas de serviço
               </p>
-              <Link href="/HourCheckout" className="inline-block px-10 py-4 bg-white text-green-600 font-bold rounded-lg hover:shadow-2xl transform hover:scale-105 transition duration-300">
+              <Link href="/HourCheckout" onClick={() => handleCtaClick('Comprar Horas de Serviço', 'cta_final')} className="inline-block px-10 py-4 bg-white text-green-600 font-bold rounded-lg hover:shadow-2xl transform hover:scale-105 transition duration-300">
                 💚 Comprar Horas de Serviço
               </Link>
             </div>
@@ -285,6 +303,15 @@ export default function Home() {
               </div>
             </div>
           </section>
+
+          {/* ========== TESTIMONIAIS ========== */}
+          <TestimonialsSection />
+
+          {/* ========== GALERIA ========== */}
+          <GallerySection />
+
+          {/* ========== BLOG ========== */}
+          <BlogSection />
 
         </main>
 
