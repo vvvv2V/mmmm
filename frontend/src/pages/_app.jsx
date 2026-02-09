@@ -14,6 +14,7 @@ import WhatsAppButton from '../components/UI/WhatsAppButton'
 import LiveChat from '../components/UI/LiveChat'
 import PushNotifications from '../components/UI/PushNotifications'
 import PWABanner from '../components/UI/PWABanner'
+import FloatingNavTools from '../components/UI/FloatingNavTools'
 import { registerServiceWorker } from '../utils/pwa'
 import Script from 'next/script'
 import { useRouter } from 'next/router'
@@ -68,6 +69,7 @@ export default function MyApp({ Component, pageProps }) {
             <ThemeProvider>
               <LoyaltyProvider>
                 <NotificationSystem />
+                  <FloatingNavTools />
                 <div className="min-h-[100vh] mobile-only pb-20">
                   <MobileTopBar />
                   <div className="pt-16">

@@ -99,14 +99,24 @@ export default function AdvancedFAQ() {
           </p>
 
           {/* Search Bar */}
-          <div className="relative mb-8">
+          <div className="relative mb-8 max-w-2xl mx-auto">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2">
+              <img src="/icon-brand.jpg" alt="logo" className="w-6 h-6 rounded-full" />
+            </div>
             <input
               type="text"
-              placeholder="🔍 Busque sua dúvida..."
+              placeholder="Busque sua dúvida ou tópico..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-6 py-4 rounded-full border-2 border-purple-300 dark:border-purple-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-lg"
+              className="w-full pl-14 pr-6 py-4 rounded-full border-2 border-purple-300 dark:border-purple-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-lg"
             />
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
+              title="Limpar busca"
+            >
+              ✖
+            </button>
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image'
 import ThemeSelector from '../UI/ThemeSelector';
+import SiteSearch from '../UI/SiteSearch';
 
 /**
  * Header Component - Premium com logo visual
@@ -58,6 +59,9 @@ export default function Header() {
               </Link>
             ))}
           </nav>
+
+          {/* Site search (desktop) */}
+          <SiteSearch className="ml-4" />
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 sm:gap-4">
